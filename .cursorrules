@@ -12,6 +12,7 @@
 - Project uses Node.js/TypeScript for MCP servers
 
 ## User Request
-- Help user publish MCPAddIn project to GitHub
+- Fix SSL certificate setup error on Hostinger server
+- Error: nginx restart failed - port 80 already in use
 - User's server details: IP 194.195.86.26, hostname srv1000404.hstgr.cloud, account root
-- Focus on GitHub repository setup and initial push
+- Domain: mcpaddin.com - need to resolve port conflict
