@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Currency Converter MCP - 200+ Currencies</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.19/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <style>
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .gradient-bg {
+            background: linear-gradient(-45deg, #10b981, #3b82f6, #8b5cf6, #f59e0b);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+        }
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #fff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="text-center mb-8">
+            <h1 class="text-5xl font-bold text-white mb-4 animate-fade-in">💱 Currency Converter MCP</h1>
+            <p class="text-xl text-white opacity-90">Convert between 200+ world currencies including cryptocurrencies and precious metals</p>
+            <div class="badge badge-success mt-4">✅ Server Running</div>
+            <div class="badge badge-info mt-2">🌍 200+ Currencies Supported</div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
+            <!-- Currency Converter Card -->
+            <div class="card bg-base-100 shadow-2xl">
+                <div class="card-body">
+                    <h2 class="card-title text-2xl mb-4">🔄 Currency Converter</h2>
+                    
+                    <div class="form-control mb-4">
+                        <label class="label">
+                            <span class="label-text">From Currency</span>
+                        </label>
+                        <select id="fromCurrency" class="select select-bordered w-full">
+                            <option value="USD">🇺🇸 USD - US Dollar</option>
+                            <option value="EUR">🇪🇺 EUR - Euro</option>
+                            <option value="GBP">🇬🇧 GBP - British Pound</option>
+                            <option value="JPY">🇯🇵 JPY - Japanese Yen</option>
+                            <option value="CHF">🇨🇭 CHF - Swiss Franc</option>
+                            <option value="CAD">🇨🇦 CAD - Canadian Dollar</option>
+                            <option value="AUD">🇦🇺 AUD - Australian Dollar</option>
+                            <option value="CNY">🇨🇳 CNY - Chinese Yuan</option>
+                            <option value="INR">🇮🇳 INR - Indian Rupee</option>
+                            <option value="BTC">₿ BTC - Bitcoin</option>
+                            <option value="ETH">Ξ ETH - Ethereum</option>
+                            <option value="XAU">Au XAU - Gold (oz)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-control mb-4">
+                        <label class="label">
+                            <span class="label-text">To Currency</span>
+                        </label>
+                        <select id="toCurrency" class="select select-bordered w-full">
+                            <option value="USD">🇺🇸 USD - US Dollar</option>
+                            <option value="EUR" selected>🇪🇺 EUR - Euro</option>
+                            <option value="GBP">🇬🇧 GBP - British Pound</option>
+                            <option value="JPY">🇯🇵 JPY - Japanese Yen</option>
+                            <option value="CHF">🇨🇭 CHF - Swiss Franc</option>
+                            <option value="CAD">🇨🇦 CAD - Canadian Dollar</option>
+                            <option value="AUD">🇦🇺 AUD - Australian Dollar</option>
+                            <option value="CNY">🇨🇳 CNY - Chinese Yuan</option>
+                            <option value="INR">🇮🇳 INR - Indian Rupee</option>
+                            <option value="BTC">₿ BTC - Bitcoin</option>
+                            <option value="ETH">Ξ ETH - Ethereum</option>
+                            <option value="XAU">Au XAU - Gold (oz)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-control mb-4">
+                        <label class="label">
+                            <span class="label-text">Amount</span>
+                        </label>
+                        <input type="number" id="amount" class="input input-bordered w-full" value="100" step="any" />
+                    </div>
+
+                    <button id="convertBtn" class="btn btn-primary w-full">
+                        <span id="convertBtnText">Convert Currency</span>
+                        <div id="convertSpinner" class="loading-spinner hidden ml-2"></div>
+                    </button>
+
+                    <div id="conversionResult" class="mt-6 hidden">
+                        <div class="alert alert-info">
+                            <div class="w-full">
+                                <h3 class="font-bold text-lg mb-2">Conversion Result:</h3>
+                                <div id="resultText" class="text-2xl font-bold"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Currency Explorer Card -->
+            <div class="card bg-base-100 shadow-2xl">
+                <div class="card-body">
+                    <h2 class="card-title text-2xl mb-4">🌍 Currency Explorer</h2>
+                    
+                    <div class="tabs tabs-boxed mb-4">
+                        <a class="tab tab-active" onclick="showCurrenciesByRegion('major')">Major</a>
+                        <a class="tab" onclick="showCurrenciesByRegion('Asia')">Asia</a>
+                        <a class="tab" onclick="showCurrenciesByRegion('Europe')">Europe</a>
+                        <a class="tab" onclick="showCurrenciesByRegion('Africa')">Africa</a>
+                        <a class="tab" onclick="showCurrenciesByRegion('crypto')">Crypto</a>
+                    </div>
+
+                    <div class="form-control mb-4">
+                        <input type="text" id="currencySearch" placeholder="Search currencies..." class="input input-bordered w-full" />
+                    </div>
+
+                    <div id="currenciesDisplay" class="space-y-2 max-h-96 overflow-y-auto">
+                        <div class="loading-spinner mx-auto"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Conversions Card -->
+        <div class="card bg-base-100 shadow-2xl max-w-6xl mx-auto mt-6">
+            <div class="card-body">
+                <h2 class="card-title text-2xl mb-4">⚡ Quick Currency Conversions</h2>
+                
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <button class="btn btn-outline" onclick="quickConvert('USD', 'EUR', 100)">
+                        $100 → €
+                    </button>
+                    <button class="btn btn-outline" onclick="quickConvert('GBP', 'USD', 100)">
+                        £100 → $
+                    </button>
+                    <button class="btn btn-outline" onclick="quickConvert('JPY', 'USD', 10000)">
+                        ¥10,000 → $
+                    </button>
+                    <button class="btn btn-outline" onclick="quickConvert('BTC', 'USD', 1)">
+                        1 BTC → $
+                    </button>
+                    <button class="btn btn-outline" onclick="quickConvert('XAU', 'USD', 1)">
+                        1 oz Gold → $
+                    </button>
+                    <button class="btn btn-outline" onclick="quickConvert('CNY', 'USD', 1000)">
+                        ¥1,000 → $
+                    </button>
+                    <button class="btn btn-outline" onclick="quickConvert('INR', 'USD', 10000)">
+                        ₹10,000 → $
+                    </button>
+                    <button class="btn btn-outline" onclick="quickConvert('ETH', 'USD', 1)">
+                        1 ETH → $
+                    </button>
+                </div>
+
+                <div id="quickResult" class="mt-4 hidden">
+                    <div class="alert alert-success">
+                        <div>
+                            <p id="quickResultText" class="text-lg font-bold"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Currency Information Card -->
+        <div class="card bg-base-100 shadow-2xl max-w-6xl mx-auto mt-6">
+            <div class="card-body">
+                <h2 class="card-title text-2xl mb-4">ℹ️ Currency Information</h2>
+                
+                <div class="flex gap-4 mb-4">
+                    <input type="text" id="currencyInfoInput" placeholder="Enter currency code (e.g., USD, EUR, BTC)" class="input input-bordered flex-1" />
+                    <button id="getCurrencyInfoBtn" class="btn btn-primary">Get Info</button>
+                </div>
+
+                <div id="currencyInfoResult" class="hidden">
+                    <div class="alert alert-info">
+                        <div>
+                            <h3 class="font-bold text-lg mb-2">Currency Information:</h3>
+                            <div id="currencyInfoText"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Animate cards on load
+        anime({
+            targets: '.card',
+            translateY: [50, 0],
+            opacity: [0, 1],
+            delay: anime.stagger(100),
+            duration: 800,
+            easing: 'easeOutQuad'
+        });
+
+        // Convert Currency
+        document.getElementById('convertBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('convertBtn');
+            const btnText = document.getElementById('convertBtnText');
+            const spinner = document.getElementById('convertSpinner');
+            const result = document.getElementById('conversionResult');
+            const resultText = document.getElementById('resultText');
+            
+            const fromCurrency = document.getElementById('fromCurrency').value;
+            const toCurrency = document.getElementById('toCurrency').value;
+            const amount = parseFloat(document.getElementById('amount').value);
+            
+            btn.disabled = true;
+            spinner.classList.remove('hidden');
+            btnText.textContent = 'Converting...';
+            
+            try {
+                const response = await fetch('/mcp/tools/call', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: 'convertCurrency',
+                        arguments: { from: fromCurrency, to: toCurrency, amount }
+                    })
+                });
+                
+                const data = await response.json();
+                
+                resultText.innerHTML = `
+                    <strong>From:</strong> ${data.from} - ${amount}<br>
+                    <strong>To:</strong> ${data.to} - ${data.result}<br>
+                    <strong>Rate:</strong> 1 ${data.from} = ${data.rate} ${data.to}<br>
+                    <strong>Time:</strong> ${new Date(data.timestamp).toLocaleString()}
+                `;
+                
+                result.classList.remove('hidden');
+                anime({
+                    targets: '#conversionResult',
+                    scale: [0.9, 1],
+                    opacity: [0, 1],
+                    duration: 500
+                });
+            } catch (error) {
+                alert('Error converting currency: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                spinner.classList.add('hidden');
+                btnText.textContent = 'Convert Currency';
+            }
+        });
+
+        // Quick Convert
+        async function quickConvert(from, to, value) {
+            const result = document.getElementById('quickResult');
+            const resultText = document.getElementById('quickResultText');
+            
+            try {
+                const response = await fetch('/mcp/tools/call', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: 'convertCurrency',
+                        arguments: { from, to, amount: value }
+                    })
+                });
+                
+                const data = await response.json();
+                
+                resultText.textContent = `${value} ${data.from} = ${data.result} ${data.to}`;
+                
+                result.classList.remove('hidden');
+                anime({
+                    targets: '#quickResult',
+                    scale: [0.9, 1],
+                    opacity: [0, 1],
+                    duration: 500
+                });
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // Show currencies by region/category
+        async function showCurrenciesByRegion(region) {
+            const display = document.getElementById('currenciesDisplay');
+            display.innerHTML = '<div class="loading-spinner mx-auto"></div>';
+            
+            try {
+                const response = await fetch('/mcp/tools/call', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: 'getSupportedCurrencies',
+                        arguments: { 
+                            region: region === 'major' ? undefined : region,
+                            category: region === 'major' ? 'major' : undefined
+                        }
+                    })
+                });
+                
+                const data = await response.json();
+                
+                display.innerHTML = Object.entries(data.currencies).map(([code, name]) => `
+                    <div class="badge badge-lg badge-outline cursor-pointer" onclick="selectCurrency('${code}')" title="${name}">
+                        ${code}: ${name}
+                    </div>
+                `).join(' ');
+            } catch (error) {
+                display.innerHTML = '<p class="text-error">Error loading currencies</p>';
+            }
+        }
+
+        // Search currencies
+        document.getElementById('currencySearch').addEventListener('input', async (e) => {
+            const query = e.target.value;
+            if (query.length < 2) return;
+            
+            const display = document.getElementById('currenciesDisplay');
+            display.innerHTML = '<div class="loading-spinner mx-auto"></div>';
+            
+            try {
+                const response = await fetch('/mcp/tools/call', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: 'searchCurrencies',
+                        arguments: { query }
+                    })
+                });
+                
+                const data = await response.json();
+                
+                display.innerHTML = Object.entries(data).map(([code, info]) => `
+                    <div class="badge badge-lg badge-outline cursor-pointer" onclick="selectCurrency('${code}')" title="${info.name} - ${info.country}">
+                        ${code}: ${info.name} (${info.symbol})
+                    </div>
+                `).join(' ');
+            } catch (error) {
+                display.innerHTML = '<p class="text-error">Error searching currencies</p>';
+            }
+        });
+
+        // Select currency for conversion
+        function selectCurrency(code) {
+            const fromCurrency = document.getElementById('fromCurrency');
+            const toCurrency = document.getElementById('toCurrency');
+            
+            if (fromCurrency.value === 'USD') {
+                toCurrency.value = code;
+            } else {
+                fromCurrency.value = code;
+            }
+        }
+
+        // Get currency information
+        document.getElementById('getCurrencyInfoBtn').addEventListener('click', async () => {
+            const currency = document.getElementById('currencyInfoInput').value.toUpperCase();
+            const result = document.getElementById('currencyInfoResult');
+            const resultText = document.getElementById('currencyInfoText');
+            
+            if (!currency) {
+                alert('Please enter a currency code');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/mcp/tools/call', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: 'getCurrencyInfo',
+                        arguments: { currency }
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data) {
+                    resultText.innerHTML = `
+                        <strong>Code:</strong> ${data.code}<br>
+                        <strong>Name:</strong> ${data.name}<br>
+                        <strong>Symbol:</strong> ${data.symbol}<br>
+                        <strong>Country:</strong> ${data.country}<br>
+                        <strong>Region:</strong> ${data.region}
+                    `;
+                } else {
+                    resultText.innerHTML = '<p class="text-error">Currency not found</p>';
+                }
+                
+                result.classList.remove('hidden');
+                anime({
+                    targets: '#currencyInfoResult',
+                    scale: [0.9, 1],
+                    opacity: [0, 1],
+                    duration: 500
+                });
+            } catch (error) {
+                alert('Error getting currency info: ' + error.message);
+            }
+        });
+
+        // Load initial currencies
+        showCurrenciesByRegion('major');
+    </script>
+</body>
+</html>

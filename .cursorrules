@@ -1,0 +1,17 @@
+# MCPAddIn Project Rules
+
+## Current Project Status
+- User is asking for explanation of the `scp` command
+- This is an informational request about Unix/Linux command line tool
+- No code changes or project modifications needed
+
+## Project Context
+- MCPAddIn project with multiple MCP servers (Currency, Time, Units)
+- Deployment guides and documentation exist
+- User prefers zsh/bash shell syntax
+- Project uses Node.js/TypeScript for MCP servers
+
+## User Request
+- Help user publish MCPAddIn project to GitHub
+- User's server details: IP 194.195.86.26, hostname srv1000404.hstgr.cloud, account root
+- Focus on GitHub repository setup and initial push

@@ -1,0 +1,11 @@
+express
+cors
+axios
+dotenv
+@modelcontextprotocol/sdk
+typescript
+ts-node
+@types/express
+@types/cors
+@types/node
+

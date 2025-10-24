@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>World Time Converter MCP</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.19/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <style>
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .gradient-bg {
+            background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #4facfe);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+        }
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #fff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="text-center mb-8">
+            <h1 class="text-5xl font-bold text-white mb-4 animate-fade-in">🌍 World Time Converter MCP</h1>
+            <p class="text-xl text-white opacity-90">Convert time between world timezones</p>
+            <div class="badge badge-success mt-4">✅ Server Running</div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
+            <!-- Time Converter Card -->
+            <div class="card bg-base-100 shadow-2xl">
+                <div class="card-body">
+                    <h2 class="card-title text-2xl mb-4">⏰ Time Converter</h2>
+                    
+                    <div class="form-control mb-4">
+                        <label class="label">
+                            <span class="label-text">From Timezone</span>
+                        </label>
+                        <select id="fromTimezone" class="select select-bordered w-full">
+                            <option value="America/New_York">Eastern Time (US & Canada)</option>
+                            <option value="America/Chicago">Central Time (US & Canada)</option>
+                            <option value="America/Denver">Mountain Time (US & Canada)</option>
+                            <option value="America/Los_Angeles">Pacific Time (US & Canada)</option>
+                            <option value="Europe/London">London</option>
+                            <option value="Europe/Paris">Paris</option>
+                            <option value="Europe/Berlin">Berlin</option>
+                            <option value="Asia/Tokyo">Tokyo</option>
+                            <option value="Asia/Shanghai">Beijing/Shanghai</option>
+                            <option value="Asia/Dubai">Dubai</option>
+                            <option value="Australia/Sydney">Sydney</option>
+                            <option value="UTC">UTC/GMT</option>
+                        </select>
+                    </div>
+
+                    <div class="form-control mb-4">
+                        <label class="label">
+                            <span class="label-text">To Timezone</span>
+                        </label>
+                        <select id="toTimezone" class="select select-bordered w-full">
+                            <option value="America/New_York">Eastern Time (US & Canada)</option>
+                            <option value="America/Chicago">Central Time (US & Canada)</option>
+                            <option value="America/Denver">Mountain Time (US & Canada)</option>
+                            <option value="America/Los_Angeles">Pacific Time (US & Canada)</option>
+                            <option value="Europe/London" selected>London</option>
+                            <option value="Europe/Paris">Paris</option>
+                            <option value="Europe/Berlin">Berlin</option>
+                            <option value="Asia/Tokyo">Tokyo</option>
+                            <option value="Asia/Shanghai">Beijing/Shanghai</option>
+                            <option value="Asia/Dubai">Dubai</option>
+                            <option value="Australia/Sydney">Sydney</option>
+                            <option value="UTC">UTC/GMT</option>
+                        </select>
+                    </div>
+
+                    <div class="form-control mb-4">
+                        <label class="label">
+                            <span class="label-text">Time (optional, defaults to now)</span>
+                        </label>
+                        <input type="time" id="timeInput" class="input input-bordered w-full" />
+                    </div>
+
+                    <button id="convertBtn" class="btn btn-primary w-full">
+                        <span id="convertBtnText">Convert Time</span>
+                        <div id="convertSpinner" class="loading-spinner hidden ml-2"></div>
+                    </button>
+
+                    <div id="conversionResult" class="mt-6 hidden">
+                        <div class="alert alert-info">
+                            <div>
+                                <h3 class="font-bold text-lg mb-2">Conversion Result:</h3>
+                                <p id="resultText" class="text-sm"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- World Clocks Card -->
+            <div class="card bg-base-100 shadow-2xl">
+                <div class="card-body">
+                    <h2 class="card-title text-2xl mb-4">🌐 World Clocks</h2>
+                    
+                    <button id="worldClocksBtn" class="btn btn-secondary w-full mb-4">
+                        <span id="worldClocksBtnText">Show World Clocks</span>
+                        <div id="worldClocksSpinner" class="loading-spinner hidden ml-2"></div>
+                    </button>
+
+                    <div id="worldClocksResult" class="space-y-2 max-h-96 overflow-y-auto">
+                        <p class="text-center text-gray-500">Click button to load world clocks</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Current Time Card -->
+        <div class="card bg-base-100 shadow-2xl max-w-6xl mx-auto mt-6">
+            <div class="card-body">
+                <h2 class="card-title text-2xl mb-4">🕐 Get Current Time</h2>
+                
+                <div class="flex gap-4">
+                    <select id="currentTimezone" class="select select-bordered flex-1">
+                        <option value="America/New_York">Eastern Time (US & Canada)</option>
+                        <option value="America/Chicago">Central Time (US & Canada)</option>
+                        <option value="America/Denver">Mountain Time (US & Canada)</option>
+                        <option value="America/Los_Angeles">Pacific Time (US & Canada)</option>
+                        <option value="Europe/London">London</option>
+                        <option value="Europe/Paris">Paris</option>
+                        <option value="Europe/Berlin">Berlin</option>
+                        <option value="Asia/Tokyo">Tokyo</option>
+                        <option value="Asia/Shanghai">Beijing/Shanghai</option>
+                        <option value="Asia/Dubai">Dubai</option>
+                        <option value="Australia/Sydney">Sydney</option>
+                        <option value="UTC">UTC/GMT</option>
+                    </select>
+                    
+                    <button id="getCurrentTimeBtn" class="btn btn-accent">
+                        Get Time
+                    </button>
+                </div>
+
+                <div id="currentTimeResult" class="mt-4 hidden">
+                    <div class="alert alert-success">
+                        <div>
+                            <h3 class="font-bold text-lg mb-2">Current Time:</h3>
+                            <p id="currentTimeText" class="text-sm"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Animate cards on load
+        anime({
+            targets: '.card',
+            translateY: [50, 0],
+            opacity: [0, 1],
+            delay: anime.stagger(100),
+            duration: 800,
+            easing: 'easeOutQuad'
+        });
+
+        // Convert Time
+        document.getElementById('convertBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('convertBtn');
+            const btnText = document.getElementById('convertBtnText');
+            const spinner = document.getElementById('convertSpinner');
+            const result = document.getElementById('conversionResult');
+            const resultText = document.getElementById('resultText');
+            
+            const fromTimezone = document.getElementById('fromTimezone').value;
+            const toTimezone = document.getElementById('toTimezone').value;
+            const time = document.getElementById('timeInput').value;
+            
+            btn.disabled = true;
+            spinner.classList.remove('hidden');
+            btnText.textContent = 'Converting...';
+            
+            try {
+                const response = await fetch('/mcp/tools/call', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: 'convertTime',
+                        arguments: {
+                            fromTimezone,
+                            toTimezone,
+                            time: time || undefined
+                        }
+                    })
+                });
+                
+                const data = await response.json();
+                
+                resultText.innerHTML = `
+                    <strong>From:</strong> ${data.fromTimezone} - ${data.inputTime}<br>
+                    <strong>To:</strong> ${data.toTimezone} - ${data.outputTime}<br>
+                    <strong>UTC:</strong> ${data.utcTime}<br>
+                    <strong>Offset From:</strong> ${data.offsetFrom} | <strong>Offset To:</strong> ${data.offsetTo}
+                `;
+                
+                result.classList.remove('hidden');
+                anime({
+                    targets: '#conversionResult',
+                    scale: [0.9, 1],
+                    opacity: [0, 1],
+                    duration: 500
+                });
+            } catch (error) {
+                alert('Error converting time: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                spinner.classList.add('hidden');
+                btnText.textContent = 'Convert Time';
+            }
+        });
+
+        // World Clocks
+        document.getElementById('worldClocksBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('worldClocksBtn');
+            const btnText = document.getElementById('worldClocksBtnText');
+            const spinner = document.getElementById('worldClocksSpinner');
+            const result = document.getElementById('worldClocksResult');
+            
+            btn.disabled = true;
+            spinner.classList.remove('hidden');
+            btnText.textContent = 'Loading...';
+            
+            try {
+                const response = await fetch('/mcp/tools/call', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: 'getWorldClocks',
+                        arguments: {}
+                    })
+                });
+                
+                const data = await response.json();
+                
+                result.innerHTML = data.map(tz => `
+                    <div class="card bg-base-200 p-3">
+                        <h4 class="font-bold">${tz.timezone}</h4>
+                        <p class="text-sm">${tz.currentTime}</p>
+                        <p class="text-xs text-gray-500">${tz.utcOffset} ${tz.isDST ? '(DST)' : ''}</p>
+                    </div>
+                `).join('');
+                
+                anime({
+                    targets: '#worldClocksResult .card',
+                    translateX: [-20, 0],
+                    opacity: [0, 1],
+                    delay: anime.stagger(50),
+                    duration: 500
+                });
+            } catch (error) {
+                alert('Error loading world clocks: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                spinner.classList.add('hidden');
+                btnText.textContent = 'Show World Clocks';
+            }
+        });
+
+        // Get Current Time
+        document.getElementById('getCurrentTimeBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('getCurrentTimeBtn');
+            const result = document.getElementById('currentTimeResult');
+            const resultText = document.getElementById('currentTimeText');
+            const timezone = document.getElementById('currentTimezone').value;
+            
+            btn.disabled = true;
+            btn.textContent = 'Loading...';
+            
+            try {
+                const response = await fetch('/mcp/tools/call', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: 'getCurrentTime',
+                        arguments: { timezone }
+                    })
+                });
+                
+                const data = await response.json();
+                
+                resultText.innerHTML = `
+                    <strong>Timezone:</strong> ${data.timezone}<br>
+                    <strong>Time:</strong> ${data.currentTime}<br>
+                    <strong>UTC Offset:</strong> ${data.utcOffset} ${data.isDST ? '(DST Active)' : ''}
+                `;
+                
+                result.classList.remove('hidden');
+                anime({
+                    targets: '#currentTimeResult',
+                    scale: [0.9, 1],
+                    opacity: [0, 1],
+                    duration: 500
+                });
+            } catch (error) {
+                alert('Error getting current time: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Get Time';
+            }
+        });
+    </script>
+</body>
+</html>
+
+

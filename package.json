@@ -1,0 +1,36 @@
+{
+  "name": "mcp-chatgpt-app",
+  "version": "1.0.0",
+  "description": "ChatGPT App with MCP SDK for Alpha Vantage Top Movers",
+  "main": "dist/server.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node src/server.ts",
+    "dev-currency": "ts-node src/currency-server.ts",
+    "dev-time": "ts-node src/time-server.ts",
+    "dev-units": "ts-node src/units-server.ts",
+    "start": "node dist/server.js",
+    "start-currency": "node dist/currency-server.js",
+    "start-time": "node dist/time-server.js",
+    "start-units": "node dist/units-server.js",
+    "watch": "tsc --watch"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "*",
+    "axios": "*",
+    "cors": "*",
+    "dotenv": "*",
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/cors": "*",
+    "@types/express": "*",
+    "@types/node": "*",
+    "ts-node": "*",
+    "typescript": "*"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}

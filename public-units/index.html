@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Units & Measurements Converter MCP</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.19/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <style>
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .gradient-bg {
+            background: linear-gradient(-45deg, #f093fb, #f5576c, #4facfe, #00f2fe);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+        }
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #fff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="text-center mb-8">
+            <h1 class="text-5xl font-bold text-white mb-4 animate-fade-in">📏 Units & Measurements Converter MCP</h1>
+            <p class="text-xl text-white opacity-90">Convert between different units of measurement</p>
+            <div class="badge badge-success mt-4">✅ Server Running</div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
+            <!-- Unit Converter Card -->
+            <div class="card bg-base-100 shadow-2xl">
+                <div class="card-body">
+                    <h2 class="card-title text-2xl mb-4">🔄 Unit Converter</h2>
+                    
+                    <div class="form-control mb-4">
+                        <label class="label">
+                            <span class="label-text">Category</span>
+                        </label>
+                        <select id="category" class="select select-bordered w-full">
+                            <option value="length">📏 Length</option>
+                            <option value="weight">⚖️ Weight</option>
+                            <option value="temperature">🌡️ Temperature</option>
+                            <option value="volume">🧪 Volume</option>
+                            <option value="area">📐 Area</option>
+                            <option value="speed">🚀 Speed</option>
+                            <option value="pressure">💨 Pressure</option>
+                            <option value="energy">⚡ Energy</option>
+                            <option value="power">🔌 Power</option>
+                            <option value="data">💾 Data</option>
+                        </select>
+                    </div>
+
+                    <div class="form-control mb-4">
+                        <label class="label">
+                            <span class="label-text">From Unit</span>
+                        </label>
+                        <select id="fromUnit" class="select select-bordered w-full">
+                            <option value="meter">Meter (m)</option>
+                            <option value="kilometer">Kilometer (km)</option>
+                            <option value="mile">Mile (mi)</option>
+                            <option value="foot">Foot (ft)</option>
+                            <option value="inch">Inch (in)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-control mb-4">
+                        <label class="label">
+                            <span class="label-text">To Unit</span>
+                        </label>
+                        <select id="toUnit" class="select select-bordered w-full">
+                            <option value="meter">Meter (m)</option>
+                            <option value="kilometer">Kilometer (km)</option>
+                            <option value="mile" selected>Mile (mi)</option>
+                            <option value="foot">Foot (ft)</option>
+                            <option value="inch">Inch (in)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-control mb-4">
+                        <label class="label">
+                            <span class="label-text">Value</span>
+                        </label>
+                        <input type="number" id="value" class="input input-bordered w-full" value="100" step="any" />
+                    </div>
+
+                    <button id="convertBtn" class="btn btn-primary w-full">
+                        <span id="convertBtnText">Convert</span>
+                        <div id="convertSpinner" class="loading-spinner hidden ml-2"></div>
+                    </button>
+
+                    <div id="conversionResult" class="mt-6 hidden">
+                        <div class="alert alert-info">
+                            <div class="w-full">
+                                <h3 class="font-bold text-lg mb-2">Result:</h3>
+                                <p id="resultText" class="text-2xl font-bold"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Categories & Units Card -->
+            <div class="card bg-base-100 shadow-2xl">
+                <div class="card-body">
+                    <h2 class="card-title text-2xl mb-4">📋 Available Units</h2>
+                    
+                    <div class="tabs tabs-boxed mb-4">
+                        <a class="tab tab-active" onclick="showUnitsForCategory('length')">Length</a>
+                        <a class="tab" onclick="showUnitsForCategory('weight')">Weight</a>
+                        <a class="tab" onclick="showUnitsForCategory('temperature')">Temp</a>
+                    </div>
+
+                    <div id="unitsDisplay" class="space-y-2 max-h-96 overflow-y-auto">
+                        <div class="loading-spinner mx-auto"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Conversions Card -->
+        <div class="card bg-base-100 shadow-2xl max-w-6xl mx-auto mt-6">
+            <div class="card-body">
+                <h2 class="card-title text-2xl mb-4">⚡ Quick Conversions</h2>
+                
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <button class="btn btn-outline" onclick="quickConvert('meter', 'foot', 1)">
+                        1m → ft
+                    </button>
+                    <button class="btn btn-outline" onclick="quickConvert('kilogram', 'pound', 1)">
+                        1kg → lb
+                    </button>
+                    <button class="btn btn-outline" onclick="quickConvert('celsius', 'fahrenheit', 0)">
+                        0°C → °F
+                    </button>
+                    <button class="btn btn-outline" onclick="quickConvert('kilometer', 'mile', 1)">
+                        1km → mi
+                    </button>
+                    <button class="btn btn-outline" onclick="quickConvert('liter', 'gallon', 1)">
+                        1L → gal
+                    </button>
+                    <button class="btn btn-outline" onclick="quickConvert('kilometer_per_hour', 'mile_per_hour', 100)">
+                        100km/h → mph
+                    </button>
+                    <button class="btn btn-outline" onclick="quickConvert('gigabyte', 'megabyte', 1)">
+                        1GB → MB
+                    </button>
+                    <button class="btn btn-outline" onclick="quickConvert('square_meter', 'square_foot', 1)">
+                        1m² → ft²
+                    </button>
+                </div>
+
+                <div id="quickResult" class="mt-4 hidden">
+                    <div class="alert alert-success">
+                        <div>
+                            <p id="quickResultText" class="text-lg font-bold"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const UNITS = {
+            length: ['meter', 'kilometer', 'centimeter', 'millimeter', 'mile', 'yard', 'foot', 'inch'],
+            weight: ['kilogram', 'gram', 'milligram', 'metric_ton', 'pound', 'ounce', 'ton', 'stone'],
+            temperature: ['celsius', 'fahrenheit', 'kelvin'],
+            volume: ['liter', 'milliliter', 'cubic_meter', 'gallon', 'quart', 'pint', 'cup', 'fluid_ounce'],
+            area: ['square_meter', 'square_kilometer', 'square_mile', 'square_foot', 'hectare', 'acre'],
+            speed: ['meter_per_second', 'kilometer_per_hour', 'mile_per_hour', 'foot_per_second', 'knot'],
+            pressure: ['pascal', 'kilopascal', 'bar', 'psi', 'atmosphere', 'torr'],
+            energy: ['joule', 'kilojoule', 'calorie', 'kilocalorie', 'kilowatt_hour', 'btu'],
+            power: ['watt', 'kilowatt', 'megawatt', 'horsepower', 'btu_per_hour'],
+            data: ['byte', 'kilobyte', 'megabyte', 'gigabyte', 'terabyte', 'bit', 'kilobit', 'megabit']
+        };
+
+        // Animate cards on load
+        anime({
+            targets: '.card',
+            translateY: [50, 0],
+            opacity: [0, 1],
+            delay: anime.stagger(100),
+            duration: 800,
+            easing: 'easeOutQuad'
+        });
+
+        // Update unit dropdowns when category changes
+        document.getElementById('category').addEventListener('change', (e) => {
+            const category = e.target.value;
+            const units = UNITS[category];
+            
+            const fromUnit = document.getElementById('fromUnit');
+            const toUnit = document.getElementById('toUnit');
+            
+            fromUnit.innerHTML = units.map(u => `<option value="${u}">${u.replace(/_/g, ' ')}</option>`).join('');
+            toUnit.innerHTML = units.map(u => `<option value="${u}">${u.replace(/_/g, ' ')}</option>`).join('');
+        });
+
+        // Convert Units
+        document.getElementById('convertBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('convertBtn');
+            const btnText = document.getElementById('convertBtnText');
+            const spinner = document.getElementById('convertSpinner');
+            const result = document.getElementById('conversionResult');
+            const resultText = document.getElementById('resultText');
+            
+            const category = document.getElementById('category').value;
+            const from = document.getElementById('fromUnit').value;
+            const to = document.getElementById('toUnit').value;
+            const value = parseFloat(document.getElementById('value').value);
+            
+            btn.disabled = true;
+            spinner.classList.remove('hidden');
+            btnText.textContent = 'Converting...';
+            
+            try {
+                const response = await fetch('/mcp/tools/call', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: 'convertUnits',
+                        arguments: { from, to, value, category }
+                    })
+                });
+                
+                const data = await response.json();
+                
+                resultText.textContent = `${value} ${data.from} = ${data.result} ${data.to}`;
+                
+                result.classList.remove('hidden');
+                anime({
+                    targets: '#conversionResult',
+                    scale: [0.9, 1],
+                    opacity: [0, 1],
+                    duration: 500
+                });
+            } catch (error) {
+                alert('Error converting units: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                spinner.classList.add('hidden');
+                btnText.textContent = 'Convert';
+            }
+        });
+
+        // Quick Convert
+        async function quickConvert(from, to, value) {
+            const result = document.getElementById('quickResult');
+            const resultText = document.getElementById('quickResultText');
+            
+            try {
+                const response = await fetch('/mcp/tools/call', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: 'convertUnits',
+                        arguments: { from, to, value }
+                    })
+                });
+                
+                const data = await response.json();
+                
+                resultText.textContent = `${value} ${data.from} = ${data.result} ${data.to}`;
+                
+                result.classList.remove('hidden');
+                anime({
+                    targets: '#quickResult',
+                    scale: [0.9, 1],
+                    opacity: [0, 1],
+                    duration: 500
+                });
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // Show units for category
+        async function showUnitsForCategory(category) {
+            const display = document.getElementById('unitsDisplay');
+            display.innerHTML = '<div class="loading-spinner mx-auto"></div>';
+            
+            try {
+                const response = await fetch('/mcp/tools/call', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: 'getSupportedUnits',
+                        arguments: { category }
+                    })
+                });
+                
+                const data = await response.json();
+                
+                display.innerHTML = Object.entries(data.units).map(([key, unit]) => `
+                    <div class="badge badge-lg badge-outline">${unit.name} (${unit.symbol})</div>
+                `).join(' ');
+            } catch (error) {
+                display.innerHTML = '<p class="text-error">Error loading units</p>';
+            }
+        }
+
+        // Load initial units
+        showUnitsForCategory('length');
+    </script>
+</body>
+</html>
+
+

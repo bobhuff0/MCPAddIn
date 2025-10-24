@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Top Movers - Stock Market Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@4/dist/full.min.css" rel="stylesheet" type="text/css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+  <style>
+    .loading-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 200px;
+    }
+    
+    .loading-dot {
+      width: 16px;
+      height: 16px;
+      margin: 0 8px;
+      background: linear-gradient(45deg, #667eea, #764ba2);
+      border-radius: 50%;
+    }
+    
+    .table-container {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    
+    .fade-in {
+      animation: fadeInUp 0.6s ease-out forwards;
+    }
+    
+    @keyframes fadeInUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .positive {
+      color: #10b981;
+    }
+    
+    .negative {
+      color: #ef4444;
+    }
+    
+    .hero-gradient {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+  </style>
+</head>
+<body class="bg-base-200 min-h-screen">
+  <div class="container mx-auto px-4 py-8">
+    <!-- Hero Section -->
+    <div class="hero-gradient rounded-lg p-8 mb-8 text-white">
+      <h1 class="text-4xl font-bold mb-2">📈 Top Movers Dashboard</h1>
+      <p class="text-lg opacity-90">Real-time stock market gainers, losers, and most actively traded</p>
+      <div class="flex gap-4 mt-4">
+        <label class="flex items-center gap-2">
+          <span>Results per category:</span>
+          <input type="number" id="limit-input" value="10" min="1" max="20" class="input input-sm w-20 text-black" />
+        </label>
+        <button id="refresh-btn" class="btn btn-sm btn-primary">🔄 Refresh</button>
+      </div>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div id="loading" class="loading-container hidden">
+      <div class="loading-dot"></div>
+      <div class="loading-dot"></div>
+      <div class="loading-dot"></div>
+    </div>
+
+    <!-- Error Message -->
+    <div id="error" class="alert alert-error hidden mb-4">
+      <span id="error-message"></span>
+    </div>
+
+    <!-- Metadata -->
+    <div id="metadata" class="alert alert-info mb-4 hidden">
+      <span id="metadata-text"></span>
+    </div>
+
+    <!-- Results Container -->
+    <div id="results" class="space-y-8">
+      <!-- Top Gainers -->
+      <div id="gainers-section" class="table-container">
+        <h2 class="text-2xl font-bold mb-4 text-success">🚀 Top Gainers</h2>
+        <div class="overflow-x-auto">
+          <table class="table table-zebra w-full">
+            <thead>
+              <tr>
+                <th>Ticker</th>
+                <th>Price</th>
+                <th>Change</th>
+                <th>Change %</th>
+                <th>Volume</th>
+              </tr>
+            </thead>
+            <tbody id="gainers-body">
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Top Losers -->
+      <div id="losers-section" class="table-container">
+        <h2 class="text-2xl font-bold mb-4 text-error">📉 Top Losers</h2>
+        <div class="overflow-x-auto">
+          <table class="table table-zebra w-full">
+            <thead>
+              <tr>
+                <th>Ticker</th>
+                <th>Price</th>
+                <th>Change</th>
+                <th>Change %</th>
+                <th>Volume</th>
+              </tr>
+            </thead>
+            <tbody id="losers-body">
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Most Actively Traded -->
+      <div id="active-section" class="table-container">
+        <h2 class="text-2xl font-bold mb-4 text-info">🔥 Most Actively Traded</h2>
+        <div class="overflow-x-auto">
+          <table class="table table-zebra w-full">
+            <thead>
+              <tr>
+                <th>Ticker</th>
+                <th>Price</th>
+                <th>Change</th>
+                <th>Change %</th>
+                <th>Volume</th>
+              </tr>
+            </thead>
+            <tbody id="active-body">
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Mock window.openai.callTool if not available (for standalone testing)
+    if (!window.openai) {
+      window.openai = {
+        callTool: async (toolName, args) => {
+          console.log(`Calling tool: ${toolName}`, args);
+          const response = await fetch('/mcp/tools/call', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              name: toolName,
+              arguments: args
+            })
+          });
+          
+          if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to call tool');
+          }
+          
+          return await response.json();
+        }
+      };
+    }
+
+    const loadingEl = document.getElementById('loading');
+    const errorEl = document.getElementById('error');
+    const errorMessageEl = document.getElementById('error-message');
+    const metadataEl = document.getElementById('metadata');
+    const metadataTextEl = document.getElementById('metadata-text');
+    const limitInput = document.getElementById('limit-input');
+    const refreshBtn = document.getElementById('refresh-btn');
+
+    function showLoading() {
+      loadingEl.classList.remove('hidden');
+      errorEl.classList.add('hidden');
+      
+      // Animate loading dots
+      anime({
+        targets: '.loading-dot',
+        translateY: [
+          { value: -20, duration: 400 },
+          { value: 0, duration: 400 }
+        ],
+        delay: anime.stagger(100),
+        loop: true,
+        easing: 'easeInOutQuad'
+      });
+    }
+
+    function hideLoading() {
+      loadingEl.classList.add('hidden');
+    }
+
+    function showError(message) {
+      errorMessageEl.textContent = message;
+      errorEl.classList.remove('hidden');
+      hideLoading();
+    }
+
+    function formatNumber(num) {
+      return parseFloat(num).toLocaleString();
+    }
+
+    function formatPrice(price) {
+      return `$${parseFloat(price).toFixed(2)}`;
+    }
+
+    function formatPercentage(pct) {
+      return pct.replace('%', '') + '%';
+    }
+
+    function renderTable(bodyId, data) {
+      const tbody = document.getElementById(bodyId);
+      tbody.innerHTML = '';
+      
+      data.forEach((item, index) => {
+        const row = document.createElement('tr');
+        const changeClass = parseFloat(item.change_amount) >= 0 ? 'positive' : 'negative';
+        
+        row.innerHTML = `
+          <td class="font-bold">${item.ticker}</td>
+          <td>${formatPrice(item.price)}</td>
+          <td class="${changeClass}">${formatPrice(item.change_amount)}</td>
+          <td class="${changeClass} font-bold">${formatPercentage(item.change_percentage)}</td>
+          <td>${formatNumber(item.volume)}</td>
+        `;
+        
+        tbody.appendChild(row);
+        
+        // Animate row entry
+        anime({
+          targets: row,
+          opacity: [0, 1],
+          translateX: [-20, 0],
+          delay: index * 50,
+          duration: 500,
+          easing: 'easeOutQuad'
+        });
+      });
+    }
+
+    async function loadTopMovers() {
+      try {
+        showLoading();
+        
+        const limit = parseInt(limitInput.value) || 10;
+        console.log('Fetching top movers with limit:', limit);
+        
+        const data = await window.openai.callTool('topMovers', { limit });
+        
+        console.log('Received data:', data);
+        
+        // Show metadata
+        metadataTextEl.textContent = `${data.metadata} - Last updated: ${data.last_updated}`;
+        metadataEl.classList.remove('hidden');
+        
+        // Render tables
+        renderTable('gainers-body', data.top_gainers || []);
+        renderTable('losers-body', data.top_losers || []);
+        renderTable('active-body', data.most_actively_traded || []);
+        
+        // Animate sections
+        document.querySelectorAll('.table-container').forEach((section, index) => {
+          section.classList.add('fade-in');
+          section.style.animationDelay = `${index * 0.1}s`;
+        });
+        
+        hideLoading();
+      } catch (error) {
+        console.error('Error loading top movers:', error);
+        showError(`Failed to load data: ${error.message}`);
+      }
+    }
+
+    // Event listeners
+    refreshBtn.addEventListener('click', loadTopMovers);
+    limitInput.addEventListener('change', loadTopMovers);
+
+    // Load data on page load
+    window.addEventListener('load', () => {
+      console.log('Page loaded, fetching top movers...');
+      loadTopMovers();
+    });
+  </script>
+</body>
+</html>
+
