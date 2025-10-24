@@ -227,7 +227,7 @@
             btnText.textContent = 'Converting...';
             
             try {
-                const response = await fetch('/mcp/tools/call', {
+                const response = await fetch('/currency/mcp/tools/call', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -267,7 +267,7 @@
             const resultText = document.getElementById('quickResultText');
             
             try {
-                const response = await fetch('/mcp/tools/call', {
+                const response = await fetch('/currency/mcp/tools/call', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -298,7 +298,7 @@
             display.innerHTML = '<div class="loading-spinner mx-auto"></div>';
             
             try {
-                const response = await fetch('/mcp/tools/call', {
+                const response = await fetch('/currency/mcp/tools/call', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -331,7 +331,7 @@
             display.innerHTML = '<div class="loading-spinner mx-auto"></div>';
             
             try {
-                const response = await fetch('/mcp/tools/call', {
+                const response = await fetch('/currency/mcp/tools/call', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -376,7 +376,7 @@
             }
             
             try {
-                const response = await fetch('/mcp/tools/call', {
+                const response = await fetch('/currency/mcp/tools/call', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({

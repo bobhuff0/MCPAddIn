@@ -193,7 +193,7 @@
             btnText.textContent = 'Converting...';
             
             try {
-                const response = await fetch('/mcp/tools/call', {
+                const response = await fetch('/time/mcp/tools/call', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -243,7 +243,7 @@
             btnText.textContent = 'Loading...';
             
             try {
-                const response = await fetch('/mcp/tools/call', {
+                const response = await fetch('/time/mcp/tools/call', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -289,7 +289,7 @@
             btn.textContent = 'Loading...';
             
             try {
-                const response = await fetch('/mcp/tools/call', {
+                const response = await fetch('/time/mcp/tools/call', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
