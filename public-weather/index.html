@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Forecast MCP</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.19/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <style>
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .gradient-bg {
+            background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #4facfe);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+        }
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #fff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .weather-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="text-center mb-8">
+            <h1 class="text-5xl font-bold text-white mb-4 animate-fade-in">🌤️ Weather Forecast MCP</h1>
+            <p class="text-xl text-white opacity-90">Get current weather and forecasts for any location</p>
+            <div class="badge badge-success mt-4">✅ Server Running</div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
+            <!-- Current Weather Card -->
+            <div class="weather-card card shadow-2xl">
+                <div class="card-body">
+                    <h2 class="card-title text-2xl mb-4">🌡️ Current Weather</h2>
+                    
+                    <div class="form-control mb-4">
+                        <label class="label">
+                            <span class="label-text">Location</span>
+                        </label>
+                        <input type="text" id="currentLocation" class="input input-bordered w-full" placeholder="e.g., London, New York, Tokyo" />
+                    </div>
+
+                    <div class="form-control mb-4">
+                        <label class="label">
+                            <span class="label-text">Units</span>
+                        </label>
+                        <select id="currentUnits" class="select select-bordered w-full">
+                            <option value="metric">Celsius (°C)</option>
+                            <option value="imperial">Fahrenheit (°F)</option>
+                            <option value="kelvin">Kelvin (K)</option>
+                        </select>
+                    </div>
+
+                    <button id="getCurrentWeatherBtn" class="btn btn-primary w-full">
+                        <span id="currentWeatherBtnText">Get Current Weather</span>
+                        <div id="currentWeatherSpinner" class="loading-spinner hidden ml-2"></div>
+                    </button>
+
+                    <div id="currentWeatherResult" class="mt-6 hidden">
+                        <div class="alert alert-info">
+                            <div>
+                                <h3 class="font-bold text-lg mb-2">Current Weather:</h3>
+                                <div id="currentWeatherText" class="text-sm"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Weather Forecast Card -->
+            <div class="weather-card card shadow-2xl">
+                <div class="card-body">
+                    <h2 class="card-title text-2xl mb-4">📅 5-Day Forecast</h2>
+                    
+                    <div class="form-control mb-4">
+                        <label class="label">
+                            <span class="label-text">Location</span>
+                        </label>
+                        <input type="text" id="forecastLocation" class="input input-bordered w-full" placeholder="e.g., London, New York, Tokyo" />
+                    </div>
+
+                    <div class="form-control mb-4">
+                        <label class="label">
+                            <span class="label-text">Units</span>
+                        </label>
+                        <select id="forecastUnits" class="select select-bordered w-full">
+                            <option value="metric">Celsius (°C)</option>
+                            <option value="imperial">Fahrenheit (°F)</option>
+                            <option value="kelvin">Kelvin (K)</option>
+                        </select>
+                    </div>
+
+                    <button id="getForecastBtn" class="btn btn-secondary w-full">
+                        <span id="forecastBtnText">Get 5-Day Forecast</span>
+                        <div id="forecastSpinner" class="loading-spinner hidden ml-2"></div>
+                    </button>
+
+                    <div id="forecastResult" class="mt-6 max-h-96 overflow-y-auto">
+                        <p class="text-center text-gray-500">Click button to load forecast</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Weather by Coordinates Card -->
+        <div class="weather-card card shadow-2xl max-w-6xl mx-auto mt-6">
+            <div class="card-body">
+                <h2 class="card-title text-2xl mb-4">📍 Weather by Coordinates</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Latitude</span>
+                        </label>
+                        <input type="number" id="latitude" class="input input-bordered" placeholder="e.g., 40.7128" step="any" />
+                    </div>
+                    
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Longitude</span>
+                        </label>
+                        <input type="number" id="longitude" class="input input-bordered" placeholder="e.g., -74.0060" step="any" />
+                    </div>
+                    
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Units</span>
+                        </label>
+                        <select id="coordsUnits" class="select select-bordered">
+                            <option value="metric">Celsius (°C)</option>
+                            <option value="imperial">Fahrenheit (°F)</option>
+                            <option value="kelvin">Kelvin (K)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button id="getCoordsWeatherBtn" class="btn btn-accent mt-4">
+                    Get Weather by Coordinates
+                </button>
+
+                <div id="coordsWeatherResult" class="mt-4 hidden">
+                    <div class="alert alert-success">
+                        <div>
+                            <h3 class="font-bold text-lg mb-2">Weather by Coordinates:</h3>
+                            <div id="coordsWeatherText" class="text-sm"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Weather Alerts Card -->
+        <div class="weather-card card shadow-2xl max-w-6xl mx-auto mt-6">
+            <div class="card-body">
+                <h2 class="card-title text-2xl mb-4">⚠️ Weather Alerts</h2>
+                
+                <div class="flex gap-4">
+                    <input type="text" id="alertsLocation" class="input input-bordered flex-1" placeholder="e.g., London, New York, Tokyo" />
+                    <button id="getAlertsBtn" class="btn btn-warning">
+                        Get Weather Alerts
+                    </button>
+                </div>
+
+                <div id="alertsResult" class="mt-4 hidden">
+                    <div class="alert alert-warning">
+                        <div>
+                            <h3 class="font-bold text-lg mb-2">Weather Alerts:</h3>
+                            <div id="alertsText" class="text-sm"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Animate cards on load
+        anime({
+            targets: '.weather-card',
+            translateY: [50, 0],
+            opacity: [0, 1],
+            delay: anime.stagger(100),
+            duration: 800,
+            easing: 'easeOutQuad'
+        });
+
+        // Mock window.openai.callTool if not available
+        if (!window.openai) {
+            window.openai = {
+                callTool: async (toolName, args) => {
+                    console.log(`Calling tool: ${toolName}`, args);
+                    const response = await fetch('/mcp/tools/call', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            name: toolName,
+                            arguments: args
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        let errorMessage = 'Failed to call tool';
+                        try {
+                            const error = await response.json();
+                            errorMessage = error.error || errorMessage;
+                        } catch (e) {
+                            errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+                        }
+                        throw new Error(errorMessage);
+                    }
+                    
+                    return await response.json();
+                }
+            };
+        }
+
+        // Get Current Weather
+        document.getElementById('getCurrentWeatherBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('getCurrentWeatherBtn');
+            const btnText = document.getElementById('currentWeatherBtnText');
+            const spinner = document.getElementById('currentWeatherSpinner');
+            const result = document.getElementById('currentWeatherResult');
+            const resultText = document.getElementById('currentWeatherText');
+            
+            const location = document.getElementById('currentLocation').value;
+            const units = document.getElementById('currentUnits').value;
+            
+            if (!location.trim()) {
+                alert('Please enter a location');
+                return;
+            }
+            
+            btn.disabled = true;
+            spinner.classList.remove('hidden');
+            btnText.textContent = 'Loading...';
+            
+            try {
+                const data = await window.openai.callTool('getCurrentWeather', { location, units });
+                
+                resultText.innerHTML = `
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <strong>Location:</strong> ${data.location}, ${data.country}<br>
+                            <strong>Temperature:</strong> ${data.temperature}°${units === 'metric' ? 'C' : units === 'imperial' ? 'F' : 'K'}<br>
+                            <strong>Feels Like:</strong> ${data.feels_like}°${units === 'metric' ? 'C' : units === 'imperial' ? 'F' : 'K'}<br>
+                            <strong>Description:</strong> ${data.weather_description}
+                        </div>
+                        <div>
+                            <strong>Humidity:</strong> ${data.humidity}%<br>
+                            <strong>Pressure:</strong> ${data.pressure} hPa<br>
+                            <strong>Wind:</strong> ${data.wind_speed} m/s<br>
+                            <strong>Visibility:</strong> ${data.visibility || 'N/A'} km
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <strong>Sunrise:</strong> ${data.sunrise} | <strong>Sunset:</strong> ${data.sunset}
+                    </div>
+                `;
+                
+                result.classList.remove('hidden');
+                anime({
+                    targets: '#currentWeatherResult',
+                    scale: [0.9, 1],
+                    opacity: [0, 1],
+                    duration: 500
+                });
+            } catch (error) {
+                alert('Error getting current weather: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                spinner.classList.add('hidden');
+                btnText.textContent = 'Get Current Weather';
+            }
+        });
+
+        // Get Weather Forecast
+        document.getElementById('getForecastBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('getForecastBtn');
+            const btnText = document.getElementById('forecastBtnText');
+            const spinner = document.getElementById('forecastSpinner');
+            const result = document.getElementById('forecastResult');
+            
+            const location = document.getElementById('forecastLocation').value;
+            const units = document.getElementById('forecastUnits').value;
+            
+            if (!location.trim()) {
+                alert('Please enter a location');
+                return;
+            }
+            
+            btn.disabled = true;
+            spinner.classList.remove('hidden');
+            btnText.textContent = 'Loading...';
+            
+            try {
+                const data = await window.openai.callTool('getWeatherForecast', { location, units });
+                
+                result.innerHTML = `
+                    <h3 class="font-bold mb-4">${data.location}, ${data.country}</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        ${data.forecast.map(item => `
+                            <div class="card bg-base-200 p-3">
+                                <h4 class="font-bold text-sm">${new Date(item.datetime).toLocaleDateString()}</h4>
+                                <p class="text-xs">${new Date(item.datetime).toLocaleTimeString()}</p>
+                                <p class="text-lg font-bold">${item.temperature}°${units === 'metric' ? 'C' : units === 'imperial' ? 'F' : 'K'}</p>
+                                <p class="text-sm">${item.weather_description}</p>
+                                <p class="text-xs">Humidity: ${item.humidity}%</p>
+                                <p class="text-xs">Wind: ${item.wind_speed} m/s</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                
+                anime({
+                    targets: '#forecastResult .card',
+                    translateX: [-20, 0],
+                    opacity: [0, 1],
+                    delay: anime.stagger(50),
+                    duration: 500
+                });
+            } catch (error) {
+                alert('Error getting weather forecast: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                spinner.classList.add('hidden');
+                btnText.textContent = 'Get 5-Day Forecast';
+            }
+        });
+
+        // Get Weather by Coordinates
+        document.getElementById('getCoordsWeatherBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('getCoordsWeatherBtn');
+            const result = document.getElementById('coordsWeatherResult');
+            const resultText = document.getElementById('coordsWeatherText');
+            
+            const lat = parseFloat(document.getElementById('latitude').value);
+            const lon = parseFloat(document.getElementById('longitude').value);
+            const units = document.getElementById('coordsUnits').value;
+            
+            if (isNaN(lat) || isNaN(lon)) {
+                alert('Please enter valid latitude and longitude');
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.textContent = 'Loading...';
+            
+            try {
+                const data = await window.openai.callTool('getWeatherByCoordinates', { lat, lon, units });
+                
+                resultText.innerHTML = `
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <strong>Location:</strong> ${data.location}, ${data.country}<br>
+                            <strong>Coordinates:</strong> ${data.coordinates.lat}, ${data.coordinates.lon}<br>
+                            <strong>Temperature:</strong> ${data.temperature}°${units === 'metric' ? 'C' : units === 'imperial' ? 'F' : 'K'}<br>
+                            <strong>Description:</strong> ${data.weather_description}
+                        </div>
+                        <div>
+                            <strong>Humidity:</strong> ${data.humidity}%<br>
+                            <strong>Pressure:</strong> ${data.pressure} hPa<br>
+                            <strong>Wind:</strong> ${data.wind_speed} m/s<br>
+                            <strong>Visibility:</strong> ${data.visibility || 'N/A'} km
+                        </div>
+                    </div>
+                `;
+                
+                result.classList.remove('hidden');
+                anime({
+                    targets: '#coordsWeatherResult',
+                    scale: [0.9, 1],
+                    opacity: [0, 1],
+                    duration: 500
+                });
+            } catch (error) {
+                alert('Error getting weather by coordinates: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Get Weather by Coordinates';
+            }
+        });
+
+        // Get Weather Alerts
+        document.getElementById('getAlertsBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('getAlertsBtn');
+            const result = document.getElementById('alertsResult');
+            const resultText = document.getElementById('alertsText');
+            const location = document.getElementById('alertsLocation').value;
+            
+            if (!location.trim()) {
+                alert('Please enter a location');
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.textContent = 'Loading...';
+            
+            try {
+                const data = await window.openai.callTool('getWeatherAlerts', { location });
+                
+                if (data.alerts.length === 0) {
+                    resultText.innerHTML = '<p class="text-green-600">No weather alerts for this location.</p>';
+                } else {
+                    resultText.innerHTML = data.alerts.map(alert => `
+                        <div class="alert alert-warning mb-2">
+                            <div>
+                                <h4 class="font-bold">${alert.event}</h4>
+                                <p class="text-sm">${alert.description}</p>
+                                <p class="text-xs">From: ${new Date(alert.start * 1000).toLocaleString()}</p>
+                                <p class="text-xs">To: ${new Date(alert.end * 1000).toLocaleString()}</p>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+                
+                result.classList.remove('hidden');
+                anime({
+                    targets: '#alertsResult',
+                    scale: [0.9, 1],
+                    opacity: [0, 1],
+                    duration: 500
+                });
+            } catch (error) {
+                alert('Error getting weather alerts: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Get Weather Alerts';
+            }
+        });
+    </script>
+</body>
+</html>

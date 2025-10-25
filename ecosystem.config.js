@@ -83,6 +83,27 @@ module.exports = {
       restart_delay: 4000,
       max_restarts: 10,
       min_uptime: '10s'
+    },
+    {
+      name: 'weather-mcp',
+      script: './dist/weather-server.js',
+      port: 3004,
+      instances: 1,
+      exec_mode: 'fork',
+      env: {
+        NODE_ENV: 'production',
+        PORT: 3004,
+        WEATHER_PORT: 3004,
+        OPENWEATHER_API_KEY: '7859575ac9bb3bc2f963f9044962b5aa'
+      },
+      error_file: './logs/weather-error.log',
+      out_file: './logs/weather-out.log',
+      log_file: './logs/weather-combined.log',
+      time: true,
+      max_memory_restart: '1G',
+      restart_delay: 4000,
+      max_restarts: 10,
+      min_uptime: '10s'
     }
   ]
 };
