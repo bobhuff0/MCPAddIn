@@ -157,7 +157,7 @@
       window.openai = {
         callTool: async (toolName, args) => {
           console.log(`Calling tool: ${toolName}`, args);
-          const response = await fetch('/stock/mcp/tools/call', {
+          const response = await fetch('/mcp/tools/call', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
