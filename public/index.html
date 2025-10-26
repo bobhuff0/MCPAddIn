@@ -169,8 +169,14 @@
           });
           
           if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Failed to call tool');
+            let errorMessage = 'Failed to call tool';
+            try {
+              const error = await response.json();
+              errorMessage = error.error || errorMessage;
+            } catch (e) {
+              errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+            }
+            throw new Error(errorMessage);
           }
           
           return await response.json();
