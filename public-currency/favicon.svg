@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="currencyGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00FF00;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00AA00;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Dollar sign -->
+  <text x="50" y="70" font-size="60" fill="url(#currencyGradient)" text-anchor="middle" font-weight="bold">$</text>
+  
+  <!-- Exchange arrows -->
+  <path d="M 25 40 L 35 50 L 25 60" stroke="url(#currencyGradient)" stroke-width="2" fill="none"/>
+  <path d="M 75 40 L 65 50 L 75 60" stroke="url(#currencyGradient)" stroke-width="2" fill="none"/>
+</svg>

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="sunGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFD700;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FFA500;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Sun -->
+  <circle cx="50" cy="50" r="25" fill="url(#sunGradient)"/>
+  
+  <!-- Sun rays -->
+  <line x1="50" y1="15" x2="50" y2="30" stroke="url(#sunGradient)" stroke-width="2"/>
+  <line x1="85" y1="50" x2="70" y2="50" stroke="url(#sunGradient)" stroke-width="2"/>
+  <line x1="50" y1="85" x2="50" y2="70" stroke="url(#sunGradient)" stroke-width="2"/>
+  <line x1="15" y1="50" x2="30" y2="50" stroke="url(#sunGradient)" stroke-width="2"/>
+  
+  <!-- Cloud -->
+  <circle cx="70" cy="60" r="8" fill="#FFFFFF" opacity="0.9"/>
+  <circle cx="78" cy="65" r="10" fill="#FFFFFF" opacity="0.9"/>
+  <circle cx="62" cy="65" r="10" fill="#FFFFFF" opacity="0.9"/>
+</svg>
