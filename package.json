@@ -9,10 +9,12 @@
     "dev-currency": "ts-node src/currency-server.ts",
     "dev-time": "ts-node src/time-server.ts",
     "dev-units": "ts-node src/units-server.ts",
+    "dev-duckdb": "ts-node src/duckdb-server.ts",
     "start": "node dist/server.js",
     "start-currency": "node dist/currency-server.js",
     "start-time": "node dist/time-server.js",
     "start-units": "node dist/units-server.js",
+    "start-duckdb": "node dist/duckdb-server.js",
     "watch": "tsc --watch"
   },
   "dependencies": {
@@ -20,6 +22,7 @@
     "axios": "*",
     "cors": "*",
     "dotenv": "*",
+    "duckdb": "^1.4.3",
     "express": "^5.1.0"
   },
   "devDependencies": {

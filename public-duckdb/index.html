@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DuckDB Database MCP</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="shortcut icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="apple-touch-icon" href="favicon.svg">
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.19/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <style>
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .gradient-bg {
+            background: linear-gradient(-45deg, #10b981, #3b82f6, #8b5cf6, #f59e0b);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+        }
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #fff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .code-block {
+            font-family: 'Courier New', monospace;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 0.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            text-align: left;
+        }
+        th {
+            background: rgba(255, 255, 255, 0.1);
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="text-center mb-8">
+            <h1 class="text-5xl font-bold text-white mb-4 animate-fade-in">🦆 DuckDB Database MCP</h1>
+            <p class="text-xl text-white opacity-90">In-memory analytical database with SQL query interface</p>
+            <div class="badge badge-success mt-4">✅ Server Running</div>
+            <div class="badge badge-info mt-2">💾 In-Memory Database</div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
+            <!-- SQL Query Card -->
+            <div class="card bg-base-100 shadow-2xl">
+                <div class="card-body">
+                    <h2 class="card-title text-2xl mb-4">📊 Execute SQL Query</h2>
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">SQL Query</span>
+                        </label>
+                        <textarea id="queryInput" class="textarea textarea-bordered h-32 font-mono" placeholder="SELECT * FROM information_schema.tables;">SELECT * FROM information_schema.tables;</textarea>
+                    </div>
+                    <div class="card-actions justify-end mt-4">
+                        <button id="executeQueryBtn" class="btn btn-primary">Execute Query</button>
+                    </div>
+                    <div id="queryResult" class="mt-4"></div>
+                </div>
+            </div>
+
+            <!-- Table Management Card -->
+            <div class="card bg-base-100 shadow-2xl">
+                <div class="card-body">
+                    <h2 class="card-title text-2xl mb-4">🗂️ Table Management</h2>
+                    
+                    <div class="tabs tabs-boxed mb-4">
+                        <a class="tab tab-active" data-tab="create">Create</a>
+                        <a class="tab" data-tab="list">List</a>
+                        <a class="tab" data-tab="describe">Describe</a>
+                        <a class="tab" data-tab="drop">Drop</a>
+                    </div>
+
+                    <!-- Create Table -->
+                    <div id="createTab" class="tab-content">
+                        <div class="form-control mb-2">
+                            <label class="label">
+                                <span class="label-text">Table Name</span>
+                            </label>
+                            <input type="text" id="tableName" class="input input-bordered" placeholder="users">
+                        </div>
+                        <div class="form-control mb-2">
+                            <label class="label">
+                                <span class="label-text">Columns (JSON)</span>
+                            </label>
+                            <textarea id="columnsInput" class="textarea textarea-bordered h-24 font-mono" placeholder='[{"name": "id", "type": "INTEGER", "constraints": "PRIMARY KEY"}, {"name": "name", "type": "VARCHAR(100)"}]'></textarea>
+                        </div>
+                        <button id="createTableBtn" class="btn btn-success w-full">Create Table</button>
+                    </div>
+
+                    <!-- List Tables -->
+                    <div id="listTab" class="tab-content hidden">
+                        <button id="listTablesBtn" class="btn btn-info w-full mb-4">List All Tables</button>
+                        <div id="tablesList"></div>
+                    </div>
+
+                    <!-- Describe Table -->
+                    <div id="describeTab" class="tab-content hidden">
+                        <div class="form-control mb-2">
+                            <label class="label">
+                                <span class="label-text">Table Name</span>
+                            </label>
+                            <input type="text" id="describeTableName" class="input input-bordered" placeholder="users">
+                        </div>
+                        <button id="describeTableBtn" class="btn btn-info w-full">Describe Table</button>
+                        <div id="describeResult" class="mt-4"></div>
+                    </div>
+
+                    <!-- Drop Table -->
+                    <div id="dropTab" class="tab-content hidden">
+                        <div class="form-control mb-2">
+                            <label class="label">
+                                <span class="label-text">Table Name</span>
+                            </label>
+                            <input type="text" id="dropTableName" class="input input-bordered" placeholder="users">
+                        </div>
+                        <button id="dropTableBtn" class="btn btn-error w-full">Drop Table</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Insert Data Card -->
+            <div class="card bg-base-100 shadow-2xl">
+                <div class="card-body">
+                    <h2 class="card-title text-2xl mb-4">➕ Insert Data</h2>
+                    <div class="form-control mb-2">
+                        <label class="label">
+                            <span class="label-text">Table Name</span>
+                        </label>
+                        <input type="text" id="insertTableName" class="input input-bordered" placeholder="users">
+                    </div>
+                    <div class="form-control mb-2">
+                        <label class="label">
+                            <span class="label-text">Data (JSON Array)</span>
+                        </label>
+                        <textarea id="insertDataInput" class="textarea textarea-bordered h-32 font-mono" placeholder='[{"id": 1, "name": "John"}, {"id": 2, "name": "Jane"}]'></textarea>
+                    </div>
+                    <button id="insertDataBtn" class="btn btn-success w-full">Insert Data</button>
+                    <div id="insertResult" class="mt-4"></div>
+                </div>
+            </div>
+
+            <!-- Export Data Card -->
+            <div class="card bg-base-100 shadow-2xl">
+                <div class="card-body">
+                    <h2 class="card-title text-2xl mb-4">📤 Export Data</h2>
+                    <div class="form-control mb-2">
+                        <label class="label">
+                            <span class="label-text">Query</span>
+                        </label>
+                        <textarea id="exportQuery" class="textarea textarea-bordered h-24 font-mono" placeholder="SELECT * FROM users;"></textarea>
+                    </div>
+                    <div class="form-control mb-2">
+                        <label class="label">
+                            <span class="label-text">Format</span>
+                        </label>
+                        <select id="exportFormat" class="select select-bordered">
+                            <option value="json">JSON</option>
+                            <option value="csv">CSV</option>
+                        </select>
+                    </div>
+                    <button id="exportDataBtn" class="btn btn-primary w-full">Export</button>
+                    <div id="exportResult" class="mt-4"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/mcp/tools/call';
+
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabName = tab.dataset.tab;
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('tab-active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+                tab.classList.add('tab-active');
+                document.getElementById(tabName + 'Tab').classList.remove('hidden');
+            });
+        });
+
+        // Helper function to call API
+        async function callTool(toolName, args) {
+            try {
+                const response = await fetch(API_BASE, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: toolName, arguments: args })
+                });
+                const data = await response.json();
+                if (data.error) throw new Error(data.error);
+                return data;
+            } catch (error) {
+                throw new Error(`Error: ${error.message}`);
+            }
+        }
+
+        // Display result helper
+        function displayResult(elementId, result, isTable = false) {
+            const element = document.getElementById(elementId);
+            if (isTable && result.rows && result.rows.length > 0) {
+                const headers = Object.keys(result.rows[0]);
+                let html = '<div class="overflow-x-auto"><table class="table table-zebra"><thead><tr>';
+                headers.forEach(h => html += `<th>${h}</th>`);
+                html += '</tr></thead><tbody>';
+                result.rows.forEach(row => {
+                    html += '<tr>';
+                    headers.forEach(h => html += `<td>${row[h] ?? 'NULL'}</td>`);
+                    html += '</tr>';
+                });
+                html += '</tbody></table></div>';
+                element.innerHTML = html;
+            } else {
+                element.innerHTML = `<div class="alert alert-info"><pre class="code-block">${JSON.stringify(result, null, 2)}</pre></div>`;
+            }
+        }
+
+        // Execute Query
+        document.getElementById('executeQueryBtn').addEventListener('click', async () => {
+            const query = document.getElementById('queryInput').value.trim();
+            if (!query) {
+                alert('Please enter a query');
+                return;
+            }
+            const btn = document.getElementById('executeQueryBtn');
+            btn.disabled = true;
+            btn.textContent = 'Executing...';
+            try {
+                const result = await callTool('executeQuery', { query });
+                displayResult('queryResult', result, true);
+            } catch (error) {
+                document.getElementById('queryResult').innerHTML = `<div class="alert alert-error">${error.message}</div>`;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Execute Query';
+            }
+        });
+
+        // Create Table
+        document.getElementById('createTableBtn').addEventListener('click', async () => {
+            const tableName = document.getElementById('tableName').value.trim();
+            const columnsText = document.getElementById('columnsInput').value.trim();
+            if (!tableName || !columnsText) {
+                alert('Please fill in all fields');
+                return;
+            }
+            try {
+                const columns = JSON.parse(columnsText);
+                const result = await callTool('createTable', { tableName, columns, ifNotExists: true });
+                alert('Table created successfully!');
+                document.getElementById('tableName').value = '';
+                document.getElementById('columnsInput').value = '';
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+            }
+        });
+
+        // List Tables
+        document.getElementById('listTablesBtn').addEventListener('click', async () => {
+            try {
+                const result = await callTool('listTables', {});
+                const listDiv = document.getElementById('tablesList');
+                if (result.tables && result.tables.length > 0) {
+                    listDiv.innerHTML = `<div class="alert alert-success"><ul class="list-disc list-inside">${result.tables.map(t => `<li>${t}</li>`).join('')}</ul><p class="mt-2">Total: ${result.count} tables</p></div>`;
+                } else {
+                    listDiv.innerHTML = '<div class="alert alert-warning">No tables found</div>';
+                }
+            } catch (error) {
+                document.getElementById('tablesList').innerHTML = `<div class="alert alert-error">${error.message}</div>`;
+            }
+        });
+
+        // Describe Table
+        document.getElementById('describeTableBtn').addEventListener('click', async () => {
+            const tableName = document.getElementById('describeTableName').value.trim();
+            if (!tableName) {
+                alert('Please enter a table name');
+                return;
+            }
+            try {
+                const result = await callTool('describeTable', { tableName });
+                displayResult('describeResult', result);
+            } catch (error) {
+                document.getElementById('describeResult').innerHTML = `<div class="alert alert-error">${error.message}</div>`;
+            }
+        });
+
+        // Drop Table
+        document.getElementById('dropTableBtn').addEventListener('click', async () => {
+            const tableName = document.getElementById('dropTableName').value.trim();
+            if (!tableName) {
+                alert('Please enter a table name');
+                return;
+            }
+            if (!confirm(`Are you sure you want to drop table "${tableName}"?`)) return;
+            try {
+                const result = await callTool('dropTable', { tableName, ifExists: true });
+                alert('Table dropped successfully!');
+                document.getElementById('dropTableName').value = '';
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+            }
+        });
+
+        // Insert Data
+        document.getElementById('insertDataBtn').addEventListener('click', async () => {
+            const tableName = document.getElementById('insertTableName').value.trim();
+            const dataText = document.getElementById('insertDataInput').value.trim();
+            if (!tableName || !dataText) {
+                alert('Please fill in all fields');
+                return;
+            }
+            try {
+                const data = JSON.parse(dataText);
+                const result = await callTool('insertData', { tableName, data });
+                document.getElementById('insertResult').innerHTML = `<div class="alert alert-success">${result.message}</div>`;
+            } catch (error) {
+                document.getElementById('insertResult').innerHTML = `<div class="alert alert-error">${error.message}</div>`;
+            }
+        });
+
+        // Export Data
+        document.getElementById('exportDataBtn').addEventListener('click', async () => {
+            const query = document.getElementById('exportQuery').value.trim();
+            const format = document.getElementById('exportFormat').value;
+            if (!query) {
+                alert('Please enter a query');
+                return;
+            }
+            try {
+                const result = await callTool('exportData', { query, format });
+                const exportDiv = document.getElementById('exportResult');
+                if (format === 'csv') {
+                    exportDiv.innerHTML = `<div class="alert alert-info"><h3 class="font-bold mb-2">CSV Export (${result.rowCount} rows)</h3><pre class="code-block">${result.data}</pre></div>`;
+                } else {
+                    exportDiv.innerHTML = `<div class="alert alert-info"><h3 class="font-bold mb-2">JSON Export (${result.rowCount} rows)</h3><pre class="code-block">${JSON.stringify(result.data, null, 2)}</pre></div>`;
+                }
+            } catch (error) {
+                document.getElementById('exportResult').innerHTML = `<div class="alert alert-error">${error.message}</div>`;
+            }
+        });
+    </script>
+</body>
+</html>
+

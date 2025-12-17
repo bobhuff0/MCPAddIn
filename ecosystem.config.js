@@ -98,6 +98,25 @@ module.exports = {
       restart_delay: 4000,
       max_restarts: 10,
       min_uptime: '10s'
+    },
+    {
+      name: 'duckdb-mcp',
+      script: './dist/duckdb-server.js',
+      port: 3005,
+      instances: 1,
+      exec_mode: 'fork',
+      env: {
+        NODE_ENV: 'production',
+        PORT: 3005
+      },
+      error_file: './logs/duckdb-error.log',
+      out_file: './logs/duckdb-out.log',
+      log_file: './logs/duckdb-combined.log',
+      time: true,
+      max_memory_restart: '1G',
+      restart_delay: 4000,
+      max_restarts: 10,
+      min_uptime: '10s'
     }
   ]
 };
