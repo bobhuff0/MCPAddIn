@@ -8,16 +8,53 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import path from 'path';
 import { google } from 'googleapis';
+import fs from 'fs';
 
 const APP_NAME = 'MCP YouTube Query App';
 const PORT = process.env.PORT || 3006;
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY || '';
+const GOOGLE_CLIENT_SECRET_PATH = process.env.GOOGLE_CLIENT_SECRET_PATH || 
+  path.join(__dirname, '../client_secret_2_849129750049-j8dmbq425df9tq0lvpbi94do3qo2tn9d.apps.googleusercontent.com.json');
 
 // Initialize YouTube API client
-const youtube = google.youtube({
-  version: 'v3',
-  auth: YOUTUBE_API_KEY,
-});
+let youtube: any;
+
+if (YOUTUBE_API_KEY) {
+  // Use API key (simplest method)
+  youtube = google.youtube({
+    version: 'v3',
+    auth: YOUTUBE_API_KEY,
+  });
+  console.log('✅ Using YouTube API Key authentication');
+} else if (fs.existsSync(GOOGLE_CLIENT_SECRET_PATH)) {
+  // Try to use OAuth client credentials
+  try {
+    const credentials = JSON.parse(fs.readFileSync(GOOGLE_CLIENT_SECRET_PATH, 'utf8'));
+    const oauth2Client = new google.auth.OAuth2(
+      credentials.installed?.client_id || credentials.web?.client_id,
+      credentials.installed?.client_secret || credentials.web?.client_secret,
+      credentials.installed?.redirect_uris?.[0] || credentials.web?.redirect_uris?.[0] || 'http://localhost'
+    );
+    
+    // For server-to-server, we'd need a refresh token
+    // For now, we'll use API key method which is simpler
+    youtube = google.youtube({
+      version: 'v3',
+      auth: oauth2Client,
+    });
+    console.log('✅ Using OAuth client credentials (note: may require user consent)');
+  } catch (error) {
+    console.error('⚠️  Failed to load OAuth credentials, falling back to API key method');
+    youtube = google.youtube({
+      version: 'v3',
+    });
+  }
+} else {
+  youtube = google.youtube({
+    version: 'v3',
+  });
+  console.log('⚠️  No authentication configured. API calls will fail without API key.');
+}
 
 // Create Express app
 const app = express();

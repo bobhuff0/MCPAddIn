@@ -206,6 +206,11 @@ dist/
 *.crt
 *.csr
 
+# Google OAuth client secrets
+*client_secret*.json
+*credentials*.json
+*service-account*.json
+
 # Backup files
 *.bak
 *.backup
