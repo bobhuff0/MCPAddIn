@@ -18,6 +18,7 @@ const GOOGLE_CLIENT_SECRET_PATH = process.env.GOOGLE_CLIENT_SECRET_PATH ||
 
 // Initialize YouTube API client
 let youtube: any;
+let hasAuth = false;
 
 if (YOUTUBE_API_KEY) {
   // Use API key (simplest method)
@@ -25,6 +26,7 @@ if (YOUTUBE_API_KEY) {
     version: 'v3',
     auth: YOUTUBE_API_KEY,
   });
+  hasAuth = true;
   console.log('✅ Using YouTube API Key authentication');
 } else if (fs.existsSync(GOOGLE_CLIENT_SECRET_PATH)) {
   // Try to use OAuth client credentials
@@ -42,6 +44,7 @@ if (YOUTUBE_API_KEY) {
       version: 'v3',
       auth: oauth2Client,
     });
+    hasAuth = true;
     console.log('✅ Using OAuth client credentials (note: may require user consent)');
   } catch (error) {
     console.error('⚠️  Failed to load OAuth credentials, falling back to API key method');
@@ -53,7 +56,6 @@ if (YOUTUBE_API_KEY) {
   youtube = google.youtube({
     version: 'v3',
   });
-  console.log('⚠️  No authentication configured. API calls will fail without API key.');
 }
 
 // Create Express app
@@ -844,8 +846,10 @@ mcpServer.setRequestHandler(CallToolRequestSchema, async (request) => {
 if (require.main === module) {
   app.listen(PORT, () => {
     console.log(`\x1b[32m✓ YouTube MCP Server running on http://localhost:${PORT}\x1b[0m`);
-    if (!YOUTUBE_API_KEY) {
-      console.log(`\x1b[33m⚠ Warning: YOUTUBE_API_KEY not set. Get your API key from: https://console.cloud.google.com/\x1b[0m`);
+    if (!hasAuth) {
+      console.log(`\x1b[33m⚠ Warning: No authentication configured. API calls will fail.`);
+      console.log(`\x1b[33m   Get your API key from: https://console.cloud.google.com/\x1b[0m`);
+      console.log(`\x1b[33m   Or use OAuth client secret file for authentication.\x1b[0m`);
     }
   });
 }
