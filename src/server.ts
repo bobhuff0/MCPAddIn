@@ -70,22 +70,16 @@ app.post('/mcp/tools/call', async (req, res) => {
 });
 
 // Health check endpoint
-app.get('/', (req, res) => {
-  res.send(`
-    <!DOCTYPE html>
-    <html><head><title>Stock Market MCP</title></head>
-    <body style="font-family:sans-serif;max-width:600px;margin:50px auto;padding:20px;">
-      <h1>📊 Stock Market MCP Server</h1>
-      <p>✅ Server is running</p>
-      <p><strong>Status:</strong> OK</p>
-      <p><strong>Version:</strong> 1.0.0</p>
-      <p><strong>Endpoints:</strong></p>
-      <ul>
-        <li>MCP: <code>/mcp</code></li>
-        <li>OpenAPI: <code>/openapi.json</code></li>
-      </ul>
-    </body></html>
-  `);
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'OK',
+    version: '1.0.0',
+    endpoints: {
+      mcp: '/mcp',
+      openapi: '/openapi.json',
+      tools: '/mcp/tools/call'
+    }
+  });
 });
 
 // OpenAPI schema for ChatGPT Actions

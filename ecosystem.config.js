@@ -9,8 +9,7 @@ module.exports = {
       env: {
         NODE_ENV: 'production',
         PORT: 3000,
-        ALPHA_VANTAGE_API_KEY: '9FPPFX9ZMA1D7ZEI',
-        EXCHANGE_RATE_API_KEY: ''
+        ALPHA_VANTAGE_API_KEY: '9FPPFX9ZMA1D7ZEI'
       },
       error_file: './logs/stock-error.log',
       out_file: './logs/stock-out.log',
@@ -30,7 +29,6 @@ module.exports = {
       env: {
         NODE_ENV: 'production',
         PORT: 3001,
-        ALPHA_VANTAGE_API_KEY: '9FPPFX9ZMA1D7ZEI',
         EXCHANGE_RATE_API_KEY: ''
       },
       error_file: './logs/currency-error.log',
@@ -50,9 +48,7 @@ module.exports = {
       exec_mode: 'fork',
       env: {
         NODE_ENV: 'production',
-        PORT: 3002,
-        ALPHA_VANTAGE_API_KEY: '9FPPFX9ZMA1D7ZEI',
-        EXCHANGE_RATE_API_KEY: ''
+        PORT: 3002
       },
       error_file: './logs/time-error.log',
       out_file: './logs/time-out.log',
@@ -71,9 +67,7 @@ module.exports = {
       exec_mode: 'fork',
       env: {
         NODE_ENV: 'production',
-        PORT: 3003,
-        ALPHA_VANTAGE_API_KEY: '9FPPFX9ZMA1D7ZEI',
-        EXCHANGE_RATE_API_KEY: ''
+        PORT: 3003
       },
       error_file: './logs/units-error.log',
       out_file: './logs/units-out.log',

@@ -9,7 +9,7 @@ import path from 'path';
 import cors from 'cors';
 
 const app = express();
-const PORT = process.env.WEATHER_PORT || 3004;
+const PORT = process.env.PORT || process.env.WEATHER_PORT || 3004;
 
 // Middleware
 app.use(cors());
@@ -329,17 +329,11 @@ app.post('/mcp/tools/call', async (req, res) => {
 });
 
 // Start Express server
-app.listen(PORT, () => {
-  console.log(`🌤️ Weather MCP Server running on port ${PORT}`);
-});
-
-// Start MCP server
-async function main() {
-  const transport = new StdioServerTransport();
-  await server.connect(transport);
-  console.log('Weather MCP server running on stdio');
-}
-
 if (require.main === module) {
-  main().catch(console.error);
+  app.listen(PORT, () => {
+    console.log(`🌤️ Weather MCP Server running on port ${PORT}`);
+    if (!OPENWEATHER_API_KEY || OPENWEATHER_API_KEY === 'your_openweather_api_key_here') {
+      console.log(`\x1b[33m⚠ Warning: OPENWEATHER_API_KEY not set or using default\x1b[0m`);
+    }
+  });
 }
