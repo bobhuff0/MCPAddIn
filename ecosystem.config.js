@@ -117,6 +117,26 @@ module.exports = {
       restart_delay: 4000,
       max_restarts: 10,
       min_uptime: '10s'
+    },
+    {
+      name: 'youtube-mcp',
+      script: './dist/youtube-server.js',
+      port: 3006,
+      instances: 1,
+      exec_mode: 'fork',
+      env: {
+        NODE_ENV: 'production',
+        PORT: 3006,
+        YOUTUBE_API_KEY: ''
+      },
+      error_file: './logs/youtube-error.log',
+      out_file: './logs/youtube-out.log',
+      log_file: './logs/youtube-combined.log',
+      time: true,
+      max_memory_restart: '1G',
+      restart_delay: 4000,
+      max_restarts: 10,
+      min_uptime: '10s'
     }
   ]
 };

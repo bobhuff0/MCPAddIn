@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Query MCP</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="shortcut icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="apple-touch-icon" href="favicon.svg">
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.19/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <style>
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .gradient-bg {
+            background: linear-gradient(-45deg, #ff0000, #cc0000, #990000, #ff3333);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+        }
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #fff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .video-card {
+            transition: transform 0.2s;
+        }
+        .video-card:hover {
+            transform: scale(1.02);
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="text-center mb-8">
+            <h1 class="text-5xl font-bold text-white mb-4 animate-fade-in">📺 YouTube Query MCP</h1>
+            <p class="text-xl text-white opacity-90">Search videos, get details, and explore YouTube content</p>
+            <div class="badge badge-success mt-4">✅ Server Running</div>
+            <div class="badge badge-info mt-2">🔍 YouTube Data API v3</div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
+            <!-- Search Videos Card -->
+            <div class="card bg-base-100 shadow-2xl">
+                <div class="card-body">
+                    <h2 class="card-title text-2xl mb-4">🔍 Search Videos</h2>
+                    <div class="form-control mb-2">
+                        <label class="label">
+                            <span class="label-text">Search Query</span>
+                        </label>
+                        <input type="text" id="searchQuery" class="input input-bordered" placeholder="e.g., how to code, cooking recipes">
+                    </div>
+                    <div class="form-control mb-2">
+                        <label class="label">
+                            <span class="label-text">Max Results</span>
+                        </label>
+                        <input type="number" id="searchMaxResults" class="input input-bordered" value="10" min="1" max="50">
+                    </div>
+                    <div class="form-control mb-2">
+                        <label class="label">
+                            <span class="label-text">Sort Order</span>
+                        </label>
+                        <select id="searchOrder" class="select select-bordered">
+                            <option value="relevance">Relevance</option>
+                            <option value="date">Date</option>
+                            <option value="rating">Rating</option>
+                            <option value="title">Title</option>
+                            <option value="viewCount">View Count</option>
+                        </select>
+                    </div>
+                    <button id="searchVideosBtn" class="btn btn-primary w-full">Search</button>
+                    <div id="searchResults" class="mt-4"></div>
+                </div>
+            </div>
+
+            <!-- Video Details Card -->
+            <div class="card bg-base-100 shadow-2xl">
+                <div class="card-body">
+                    <h2 class="card-title text-2xl mb-4">📹 Video Details</h2>
+                    <div class="form-control mb-2">
+                        <label class="label">
+                            <span class="label-text">Video ID</span>
+                        </label>
+                        <input type="text" id="videoId" class="input input-bordered" placeholder="e.g., dQw4w9WgXcQ">
+                    </div>
+                    <button id="getVideoDetailsBtn" class="btn btn-info w-full mb-4">Get Details</button>
+                    <button id="getVideoCommentsBtn" class="btn btn-secondary w-full">Get Comments</button>
+                    <div id="videoDetails" class="mt-4"></div>
+                </div>
+            </div>
+
+            <!-- Channel Info Card -->
+            <div class="card bg-base-100 shadow-2xl">
+                <div class="card-body">
+                    <h2 class="card-title text-2xl mb-4">👤 Channel Info</h2>
+                    <div class="form-control mb-2">
+                        <label class="label">
+                            <span class="label-text">Channel ID</span>
+                        </label>
+                        <input type="text" id="channelId" class="input input-bordered" placeholder="e.g., UC_x5XG1OV2P6uZZ5FSM9Ttw">
+                    </div>
+                    <button id="getChannelInfoBtn" class="btn btn-success w-full mb-2">Get Channel Info</button>
+                    <button id="getChannelVideosBtn" class="btn btn-success w-full">Get Channel Videos</button>
+                    <div id="channelInfo" class="mt-4"></div>
+                </div>
+            </div>
+
+            <!-- Playlist & Trending Card -->
+            <div class="card bg-base-100 shadow-2xl">
+                <div class="card-body">
+                    <h2 class="card-title text-2xl mb-4">📋 Playlists & Trending</h2>
+                    
+                    <div class="tabs tabs-boxed mb-4">
+                        <a class="tab tab-active" data-tab="playlist">Playlist</a>
+                        <a class="tab" data-tab="trending">Trending</a>
+                    </div>
+
+                    <!-- Playlist Tab -->
+                    <div id="playlistTab" class="tab-content">
+                        <div class="form-control mb-2">
+                            <label class="label">
+                                <span class="label-text">Playlist ID</span>
+                            </label>
+                            <input type="text" id="playlistId" class="input input-bordered" placeholder="e.g., PLrAXtmRdnEQy6nuLM9Mk_3m4q6bPx2">
+                        </div>
+                        <div class="form-control mb-2">
+                            <label class="label">
+                                <span class="label-text">Max Results</span>
+                            </label>
+                            <input type="number" id="playlistMaxResults" class="input input-bordered" value="10" min="1" max="50">
+                        </div>
+                        <button id="getPlaylistVideosBtn" class="btn btn-primary w-full">Get Playlist Videos</button>
+                    </div>
+
+                    <!-- Trending Tab -->
+                    <div id="trendingTab" class="tab-content hidden">
+                        <div class="form-control mb-2">
+                            <label class="label">
+                                <span class="label-text">Region Code</span>
+                            </label>
+                            <select id="regionCode" class="select select-bordered">
+                                <option value="US">United States</option>
+                                <option value="GB">United Kingdom</option>
+                                <option value="CA">Canada</option>
+                                <option value="AU">Australia</option>
+                                <option value="DE">Germany</option>
+                                <option value="FR">France</option>
+                                <option value="JP">Japan</option>
+                            </select>
+                        </div>
+                        <div class="form-control mb-2">
+                            <label class="label">
+                                <span class="label-text">Max Results</span>
+                            </label>
+                            <input type="number" id="trendingMaxResults" class="input input-bordered" value="10" min="1" max="50">
+                        </div>
+                        <button id="getTrendingVideosBtn" class="btn btn-error w-full">Get Trending Videos</button>
+                    </div>
+
+                    <div id="playlistTrendingResults" class="mt-4"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/mcp/tools/call';
+
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabName = tab.dataset.tab;
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('tab-active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+                tab.classList.add('tab-active');
+                document.getElementById(tabName + 'Tab').classList.remove('hidden');
+            });
+        });
+
+        // Helper function to call API
+        async function callTool(toolName, args) {
+            try {
+                const response = await fetch(API_BASE, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: toolName, arguments: args })
+                });
+                const data = await response.json();
+                if (data.error) throw new Error(data.error);
+                return data;
+            } catch (error) {
+                throw new Error(`Error: ${error.message}`);
+            }
+        }
+
+        // Display video results
+        function displayVideos(elementId, videos, title = 'Videos') {
+            const element = document.getElementById(elementId);
+            if (!videos || videos.length === 0) {
+                element.innerHTML = '<div class="alert alert-warning">No videos found</div>';
+                return;
+            }
+
+            let html = `<div class="alert alert-info mb-4"><strong>${title}:</strong> Found ${videos.length} video(s)</div>`;
+            videos.forEach(video => {
+                const thumbnail = video.thumbnails?.medium?.url || video.thumbnails?.default?.url || '';
+                html += `
+                    <div class="card bg-base-200 mb-4 video-card">
+                        <div class="card-body">
+                            <div class="flex gap-4">
+                                ${thumbnail ? `<img src="${thumbnail}" alt="${video.title}" class="w-32 h-24 object-cover rounded">` : ''}
+                                <div class="flex-1">
+                                    <h3 class="card-title text-lg">${video.title || 'Untitled'}</h3>
+                                    <p class="text-sm opacity-70">${video.channelTitle || ''}</p>
+                                    ${video.statistics ? `
+                                        <div class="flex gap-4 mt-2 text-xs">
+                                            <span>👁️ ${formatNumber(video.statistics.viewCount)}</span>
+                                            <span>👍 ${formatNumber(video.statistics.likeCount)}</span>
+                                            <span>💬 ${formatNumber(video.statistics.commentCount)}</span>
+                                        </div>
+                                    ` : ''}
+                                    ${video.publishedAt ? `<p class="text-xs opacity-50 mt-1">Published: ${new Date(video.publishedAt).toLocaleDateString()}</p>` : ''}
+                                    ${video.videoId ? `<a href="https://www.youtube.com/watch?v=${video.videoId}" target="_blank" class="btn btn-sm btn-primary mt-2">Watch on YouTube</a>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            element.innerHTML = html;
+        }
+
+        function formatNumber(num) {
+            if (!num) return '0';
+            return parseInt(num).toLocaleString();
+        }
+
+        // Search Videos
+        document.getElementById('searchVideosBtn').addEventListener('click', async () => {
+            const query = document.getElementById('searchQuery').value.trim();
+            if (!query) {
+                alert('Please enter a search query');
+                return;
+            }
+            const btn = document.getElementById('searchVideosBtn');
+            btn.disabled = true;
+            btn.textContent = 'Searching...';
+            try {
+                const result = await callTool('searchVideos', {
+                    query: query,
+                    maxResults: parseInt(document.getElementById('searchMaxResults').value) || 10,
+                    order: document.getElementById('searchOrder').value
+                });
+                displayVideos('searchResults', result.videos, `Search Results for "${query}"`);
+            } catch (error) {
+                document.getElementById('searchResults').innerHTML = `<div class="alert alert-error">${error.message}</div>`;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Search';
+            }
+        });
+
+        // Get Video Details
+        document.getElementById('getVideoDetailsBtn').addEventListener('click', async () => {
+            const videoId = document.getElementById('videoId').value.trim();
+            if (!videoId) {
+                alert('Please enter a video ID');
+                return;
+            }
+            try {
+                const result = await callTool('getVideoDetails', { videoId });
+                const detailsDiv = document.getElementById('videoDetails');
+                detailsDiv.innerHTML = `
+                    <div class="alert alert-success">
+                        <h3 class="font-bold text-lg mb-2">${result.title}</h3>
+                        <p class="text-sm mb-2">Channel: ${result.channelTitle}</p>
+                        ${result.statistics ? `
+                            <div class="flex gap-4 text-sm">
+                                <span>👁️ ${formatNumber(result.statistics.viewCount)} views</span>
+                                <span>👍 ${formatNumber(result.statistics.likeCount)} likes</span>
+                                <span>💬 ${formatNumber(result.statistics.commentCount)} comments</span>
+                            </div>
+                        ` : ''}
+                        ${result.description ? `<p class="mt-2 text-xs opacity-70">${result.description.substring(0, 200)}...</p>` : ''}
+                        <a href="https://www.youtube.com/watch?v=${videoId}" target="_blank" class="btn btn-sm btn-primary mt-2">Watch on YouTube</a>
+                    </div>
+                `;
+            } catch (error) {
+                document.getElementById('videoDetails').innerHTML = `<div class="alert alert-error">${error.message}</div>`;
+            }
+        });
+
+        // Get Video Comments
+        document.getElementById('getVideoCommentsBtn').addEventListener('click', async () => {
+            const videoId = document.getElementById('videoId').value.trim();
+            if (!videoId) {
+                alert('Please enter a video ID');
+                return;
+            }
+            try {
+                const result = await callTool('getVideoComments', { videoId, maxResults: 10 });
+                const detailsDiv = document.getElementById('videoDetails');
+                let commentsHtml = '<div class="alert alert-info"><h3 class="font-bold mb-2">Comments:</h3>';
+                result.comments.forEach(comment => {
+                    commentsHtml += `
+                        <div class="mb-2 p-2 bg-base-200 rounded">
+                            <p class="font-semibold text-sm">${comment.author}</p>
+                            <p class="text-xs">${comment.text}</p>
+                            <p class="text-xs opacity-50 mt-1">👍 ${formatNumber(comment.likeCount)}</p>
+                        </div>
+                    `;
+                });
+                commentsHtml += '</div>';
+                detailsDiv.innerHTML = commentsHtml;
+            } catch (error) {
+                document.getElementById('videoDetails').innerHTML = `<div class="alert alert-error">${error.message}</div>`;
+            }
+        });
+
+        // Get Channel Info
+        document.getElementById('getChannelInfoBtn').addEventListener('click', async () => {
+            const channelId = document.getElementById('channelId').value.trim();
+            if (!channelId) {
+                alert('Please enter a channel ID');
+                return;
+            }
+            try {
+                const result = await callTool('getChannelInfo', { channelId });
+                const channelDiv = document.getElementById('channelInfo');
+                channelDiv.innerHTML = `
+                    <div class="alert alert-success">
+                        <h3 class="font-bold text-lg mb-2">${result.title}</h3>
+                        ${result.statistics ? `
+                            <div class="text-sm">
+                                <p>👥 ${formatNumber(result.statistics.subscriberCount)} subscribers</p>
+                                <p>📹 ${formatNumber(result.statistics.videoCount)} videos</p>
+                                <p>👁️ ${formatNumber(result.statistics.viewCount)} total views</p>
+                            </div>
+                        ` : ''}
+                        ${result.description ? `<p class="mt-2 text-xs opacity-70">${result.description.substring(0, 150)}...</p>` : ''}
+                    </div>
+                `;
+            } catch (error) {
+                document.getElementById('channelInfo').innerHTML = `<div class="alert alert-error">${error.message}</div>`;
+            }
+        });
+
+        // Get Channel Videos
+        document.getElementById('getChannelVideosBtn').addEventListener('click', async () => {
+            const channelId = document.getElementById('channelId').value.trim();
+            if (!channelId) {
+                alert('Please enter a channel ID');
+                return;
+            }
+            try {
+                const result = await callTool('getChannelVideos', { channelId, maxResults: 10 });
+                displayVideos('channelInfo', result.videos, 'Channel Videos');
+            } catch (error) {
+                document.getElementById('channelInfo').innerHTML = `<div class="alert alert-error">${error.message}</div>`;
+            }
+        });
+
+        // Get Playlist Videos
+        document.getElementById('getPlaylistVideosBtn').addEventListener('click', async () => {
+            const playlistId = document.getElementById('playlistId').value.trim();
+            if (!playlistId) {
+                alert('Please enter a playlist ID');
+                return;
+            }
+            try {
+                const result = await callTool('getPlaylistVideos', {
+                    playlistId,
+                    maxResults: parseInt(document.getElementById('playlistMaxResults').value) || 10
+                });
+                displayVideos('playlistTrendingResults', result.videos, 'Playlist Videos');
+            } catch (error) {
+                document.getElementById('playlistTrendingResults').innerHTML = `<div class="alert alert-error">${error.message}</div>`;
+            }
+        });
+
+        // Get Trending Videos
+        document.getElementById('getTrendingVideosBtn').addEventListener('click', async () => {
+            try {
+                const result = await callTool('getTrendingVideos', {
+                    regionCode: document.getElementById('regionCode').value,
+                    maxResults: parseInt(document.getElementById('trendingMaxResults').value) || 10
+                });
+                displayVideos('playlistTrendingResults', result.videos, `Trending Videos (${result.regionCode})`);
+            } catch (error) {
+                document.getElementById('playlistTrendingResults').innerHTML = `<div class="alert alert-error">${error.message}</div>`;
+            }
+        });
+    </script>
+</body>
+</html>
+

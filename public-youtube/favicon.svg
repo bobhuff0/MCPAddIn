@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="stockGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00D4FF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0099FF;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Chart line going up -->
+  <path d="M 20 70 L 35 60 L 50 50 L 65 40 L 80 30" stroke="url(#stockGradient)" stroke-width="3" fill="none"/>
+  <circle cx="20" cy="70" r="3" fill="url(#stockGradient)"/>
+  <circle cx="80" cy="30" r="3" fill="url(#stockGradient)"/>
+  
+  <!-- Dollar sign -->
+  <text x="50" y="50" font-size="40" fill="url(#stockGradient)" text-anchor="middle" dy=".35em" font-weight="bold">$</text>
+</svg>
