@@ -38,16 +38,33 @@ if (YOUTUBE_API_KEY) {
       credentials.installed?.redirect_uris?.[0] || credentials.web?.redirect_uris?.[0] || 'http://localhost'
     );
     
-    // For server-to-server, we'd need a refresh token
-    // For now, we'll use API key method which is simpler
+    // Check for stored refresh token
+    const tokenPath = path.join(__dirname, '../youtube-token.json');
+    if (fs.existsSync(tokenPath)) {
+      try {
+        const token = JSON.parse(fs.readFileSync(tokenPath, 'utf8'));
+        oauth2Client.setCredentials(token);
+        if (token.refresh_token) {
+          console.log('✅ Using OAuth with stored refresh token');
+        } else {
+          console.log('⚠️  OAuth token found but no refresh token. May need to re-authenticate.');
+        }
+      } catch (error) {
+        console.log('⚠️  Failed to load stored OAuth token');
+      }
+    } else {
+      console.log('⚠️  OAuth client secret found but no refresh token.');
+      console.log('⚠️  For YouTube Data API, API key is recommended for read operations.');
+      console.log('⚠️  Get your API key from: https://console.cloud.google.com/apis/credentials?project=re-pattaya-2925');
+    }
+    
     youtube = google.youtube({
       version: 'v3',
       auth: oauth2Client,
     });
     hasAuth = true;
-    console.log('✅ Using OAuth client credentials (note: may require user consent)');
   } catch (error) {
-    console.error('⚠️  Failed to load OAuth credentials, falling back to API key method');
+    console.error('⚠️  Failed to load OAuth credentials');
     youtube = google.youtube({
       version: 'v3',
     });
@@ -454,8 +471,8 @@ app.get('/mcp/tools/list', (req, res) => {
 
 // Helper function to search videos
 async function searchVideos(query: string, maxResults: number = 10, order: string = 'relevance'): Promise<any> {
-  if (!YOUTUBE_API_KEY) {
-    throw new Error('YOUTUBE_API_KEY environment variable not set');
+  if (!hasAuth) {
+    throw new Error('No authentication configured. Set YOUTUBE_API_KEY or provide OAuth client secret file.');
   }
 
   try {
@@ -491,8 +508,8 @@ async function searchVideos(query: string, maxResults: number = 10, order: strin
 
 // Helper function to get video details
 async function getVideoDetails(videoId: string): Promise<any> {
-  if (!YOUTUBE_API_KEY) {
-    throw new Error('YOUTUBE_API_KEY environment variable not set');
+  if (!hasAuth) {
+    throw new Error('No authentication configured. Set YOUTUBE_API_KEY or provide OAuth client secret file.');
   }
 
   try {
@@ -530,8 +547,8 @@ async function getVideoDetails(videoId: string): Promise<any> {
 
 // Helper function to get channel info
 async function getChannelInfo(channelId: string): Promise<any> {
-  if (!YOUTUBE_API_KEY) {
-    throw new Error('YOUTUBE_API_KEY environment variable not set');
+  if (!hasAuth) {
+    throw new Error('No authentication configured. Set YOUTUBE_API_KEY or provide OAuth client secret file.');
   }
 
   try {
@@ -566,8 +583,8 @@ async function getChannelInfo(channelId: string): Promise<any> {
 
 // Helper function to get channel videos
 async function getChannelVideos(channelId: string, maxResults: number = 10): Promise<any> {
-  if (!YOUTUBE_API_KEY) {
-    throw new Error('YOUTUBE_API_KEY environment variable not set');
+  if (!hasAuth) {
+    throw new Error('No authentication configured. Set YOUTUBE_API_KEY or provide OAuth client secret file.');
   }
 
   try {
@@ -591,8 +608,8 @@ async function getChannelVideos(channelId: string, maxResults: number = 10): Pro
 
 // Helper function to get playlist videos
 async function getPlaylistVideos(playlistId: string, maxResults: number = 10): Promise<any> {
-  if (!YOUTUBE_API_KEY) {
-    throw new Error('YOUTUBE_API_KEY environment variable not set');
+  if (!hasAuth) {
+    throw new Error('No authentication configured. Set YOUTUBE_API_KEY or provide OAuth client secret file.');
   }
 
   try {
@@ -624,8 +641,8 @@ async function getPlaylistVideos(playlistId: string, maxResults: number = 10): P
 
 // Helper function to get trending videos
 async function getTrendingVideos(regionCode: string = 'US', categoryId: string = '0', maxResults: number = 10): Promise<any> {
-  if (!YOUTUBE_API_KEY) {
-    throw new Error('YOUTUBE_API_KEY environment variable not set');
+  if (!hasAuth) {
+    throw new Error('No authentication configured. Set YOUTUBE_API_KEY or provide OAuth client secret file.');
   }
 
   try {
@@ -666,8 +683,8 @@ async function getTrendingVideos(regionCode: string = 'US', categoryId: string =
 
 // Helper function to get video comments
 async function getVideoComments(videoId: string, maxResults: number = 10): Promise<any> {
-  if (!YOUTUBE_API_KEY) {
-    throw new Error('YOUTUBE_API_KEY environment variable not set');
+  if (!hasAuth) {
+    throw new Error('No authentication configured. Set YOUTUBE_API_KEY or provide OAuth client secret file.');
   }
 
   try {
